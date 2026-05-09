@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --blue: #448AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Settings Card */
+        .settings-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-title i {
+            color: var(--blue);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .setting-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .setting-desc {
+            font-size: 10px;
+            color: var(--text4);
+            margin-top: 2px;
+        }
+        .setting-control {
+            min-width: 200px;
+        }
+
+        /* Status Select */
+        .status-select {
+            padding: 8px 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .status-select.success {
+            border-color: var(--green);
+            color: var(--green);
+        }
+        .status-select.freeze {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+        .status-select.insufficient {
+            border-color: var(--orange);
+            color: var(--orange);
+        }
+        .status-select.disabled {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        /* Inputs */
+        .settings-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+        }
+        .settings-input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 34px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 2px;
+            background-color: var(--text3);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--blue);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: white;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .save-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .logo-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .logo-preview img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--input);
+            padding: 5px;
+        }
+        .upload-btn {
+            background: rgba(68,138,255,0.15);
+            border: 1px solid var(--blue);
+            color: var(--blue);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.error {
+            background: var(--red);
+        }
+
+        @media (max-width: 550px) {
+            .setting-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .setting-control {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas-fa-arrow-left"></i></button>
+        <h1>⚙️ <span>SETTINGS</span></h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+
+        <!-- Maintenance Mode -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-tools"></i> Maintenance Mode
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Maintenance Mode</div>
+                    <div class="setting-desc">Enable to put app under maintenance</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="maintenanceMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Maintenance Message</div>
+                    <div class="setting-desc">Message shown during maintenance</div>
+                </div>
+                <div class="setting-control">
+                    <input type="text" class="settings-input" id="maintenanceMessage" placeholder="We are updating our system...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Transfer Settings -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-exchange-alt"></i> Wallet Transfer Settings
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Transfer Status</div>
+                    <div class="setting-desc">Set global wallet transfer status</div>
+                </div>
+                <div class="setting-control">
+                    <select id="transferStatus" class="status-select">
+                        <option value="success">✅ Success - Transfer allowed</option>
+                        <option value="freeze">❄️ Balance Freeze - Transfers frozen</option>
+                        <option value="insufficient">⚠️ Insufficient Balance - Minimum balance required</option>
+                        <option value="disabled">🚫 Transfer Disabled - Contact admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Minimum Balance (₹)</div>
+                    <div class="setting-desc">Minimum balance required for transfer (for insufficient status)</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="settings-input" id="minTransferBalance" placeholder="500" step="100">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Transfer Message</div>
+                    <div class="setting-desc">Custom message shown to users</div>
+                </div>
+                <div class="setting-control">
+                    <input type="text" class="settings-input" id="transferMessage" placeholder="Contact admin for transfer">
+                </div>
+            </div>
+        </div>
+
+        <!-- App Settings -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-mobile-alt"></i> App Settings
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">App Name</div>
+                    <div class="setting-desc">Application display name</div>
+                </div>
+                <div class="setting-control">
+                    <input type="text" class="settings-input" id="appName" placeholder="Revo Fixer">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">App Version</div>
+                    <div class="setting-desc">Current version number</div>
+                </div>
+                <div class="setting-control">
+                    <input type="text" class="settings-input" id="appVersion" placeholder="2.0.0">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Force Update</div>
+                    <div class="setting-desc">Force users to update app</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="forceUpdate">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Settings -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-coins"></i> Payment Settings
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Minimum Deposit (₹)</div>
+                    <div class="setting-desc">Minimum amount for deposit</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="settings-input" id="minDeposit" placeholder="1000" step="100">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">USDT to INR Rate</div>
+                    <div class="setting-desc">Live conversion rate</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="settings-input" id="usdtRate" placeholder="94.14" step="0.01">
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Settings -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-phone-alt"></i> Contact Settings
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Telegram Link</div>
+                    <div class="setting-desc">Support telegram channel/group</div>
+                </div>
+                <div class="setting-control">
+                    <input type="text" class="settings-input" id="telegramLink" placeholder="https://t.me/...">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Support Email</div>
+                    <div class="setting-desc">Admin contact email</div>
+                </div>
+                <div class="setting-control">
+                    <input type="email" class="settings-input" id="supportEmail" placeholder="support@revofixer.com">
+                </div>
+            </div>
+        </div>
+
+        <!-- Logo Upload -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-image"></i> Appearance
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">App Logo</div>
+                    <div class="setting-desc">Upload custom logo (PNG)</div>
+                </div>
+                <div class="setting-control">
+                    <div class="logo-preview">
+                        <img id="logoPreview" src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/60?text=Logo'">
+                        <input type="file" id="logoUpload" accept="image/png" style="display: none;">
+                        <button class="upload-btn" onclick="document.getElementById('logoUpload').click()">
+                            <i class="fas fa-upload"></i> Upload Logo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <button class="save-btn" onclick="saveAllSettings()">
+            <i class="fas fa-save"></i> SAVE ALL SETTINGS
+        </button>
+
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Update select style based on value
+        function updateSelectStyle(select) {
+            const value = select.value;
+            select.classList.remove('success', 'freeze', 'insufficient', 'disabled');
+            if (value === 'success') select.classList.add('success');
+            else if (value === 'freeze') select.classList.add('freeze');
+            else if (value === 'insufficient') select.classList.add('insufficient');
+            else if (value === 'disabled') select.classList.add('disabled');
+        }
+
+        // Load settings from Firebase
+        async function loadSettings() {
+            const snapshot = await db.ref('appSettings').once('value');
+            const settings = snapshot.val() || {};
+            
+            // Maintenance
+            document.getElementById('maintenanceMode').checked = settings.maintenanceMode === true;
+            document.getElementById('maintenanceMessage').value = settings.maintenanceMessage || 'We are updating our system. Please check back later.';
+            
+            // Wallet Transfer Settings
+            const transferStatus = document.getElementById('transferStatus');
+            transferStatus.value = settings.walletTransfer?.status || 'success';
+            updateSelectStyle(transferStatus);
+            transferStatus.addEventListener('change', function() {
+                updateSelectStyle(this);
+            });
+            
+            document.getElementById('minTransferBalance').value = settings.walletTransfer?.minBalance || 500;
+            document.getElementById('transferMessage').value = settings.walletTransfer?.message || 'Contact admin for transfer';
+            
+            // App Settings
+            document.getElementById('appName').value = settings.appName || 'Revo Fixer';
+            document.getElementById('appVersion').value = settings.appVersion || '2.0.0';
+            document.getElementById('forceUpdate').checked = settings.forceUpdate === true;
+            
+            // Payment Settings
+            const paymentSettings = settings.paymentSettings || {};
+            document.getElementById('minDeposit').value = paymentSettings.minDepositINR || 1000;
+            document.getElementById('usdtRate').value = paymentSettings.usdtRate || 94.14;
+            
+            // Contact Settings
+            document.getElementById('telegramLink').value = settings.telegramLink || 'https://t.me/+CNJHfpdP1ck0NDA1';
+            document.getElementById('supportEmail').value = settings.supportEmail || 'support@revofixer.com';
+        }
+
+        // Save all settings
+        async function saveAllSettings() {
+            const settings = {
+                maintenanceMode: document.getElementById('maintenanceMode').checked,
+                maintenanceMessage: document.getElementById('maintenanceMessage').value,
+                appName: document.getElementById('appName').value,
+                appVersion: document.getElementById('appVersion').value,
+                forceUpdate: document.getElementById('forceUpdate').checked,
+                telegramLink: document.getElementById('telegramLink').value,
+                supportEmail: document.getElementById('supportEmail').value,
+                walletTransfer: {
+                    status: document.getElementById('transferStatus').value,
+                    minBalance: parseInt(document.getElementById('minTransferBalance').value) || 500,
+                    message: document.getElementById('transferMessage').value,
+                    updatedAt: Date.now()
+                },
+                paymentSettings: {
+                    minDepositINR: parseInt(document.getElementById('minDeposit').value) || 1000,
+                    usdtRate: parseFloat(document.getElementById('usdtRate').value) || 94.14
+                },
+                updatedAt: Date.now()
+            };
+            
+            try {
+                await db.ref('appSettings').update(settings);
+                showToast('✅ All settings saved successfully!');
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        // Logo upload
+        document.getElementById('logoUpload').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.includes('image/png') && !file.type.includes('image/jpeg')) {
+                showToast('Only PNG or JPG images allowed', true);
+                return;
+            }
+            
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    const base64 = event.target.result;
+                    await db.ref('appSettings/logoBase64').set(base64);
+                    document.getElementById('logoPreview').src = base64;
+                    showToast('✅ Logo uploaded successfully!');
+                };
+                reader.readAsDataURL(file);
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        });
+
+        // Load logo from Firebase
+        async function loadLogo() {
+            const snapshot = await db.ref('appSettings/logoBase64').once('value');
+            const logo = snapshot.val();
+            if (logo) {
+                document.getElementById('logoPreview').src = logo;
+            }
+        }
+
+        // Initialize
+        loadSettings();
+        loadLogo();
+    </script>
+</body>
+</html>

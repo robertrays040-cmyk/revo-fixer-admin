@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Balance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --blue: #448AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 8px;
+            color: var(--text3);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.orange { color: var(--orange); }
+
+        /* Search Box */
+        .search-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: var(--blue);
+        }
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+        .search-result-item {
+            padding: 12px;
+            background: var(--input);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-result-item:hover {
+            background: rgba(68,138,255,0.1);
+            transform: translateX(5px);
+        }
+        .result-name {
+            font-weight: 600;
+        }
+        .result-id {
+            font-size: 10px;
+            color: var(--text4);
+        }
+        .result-balance {
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+        /* Selected User Card */
+        .user-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .user-id {
+            font-size: 11px;
+            color: var(--text4);
+            margin-top: 4px;
+            font-family: monospace;
+        }
+        .current-balance {
+            text-align: right;
+        }
+        .balance-label {
+            font-size: 10px;
+            color: var(--text3);
+        }
+        .balance-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--blue);
+        }
+
+        /* Preset Buttons */
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .preset-btn {
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: var(--text2);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .action-btn.add {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        .action-btn.remove {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .action-btn.set {
+            background: rgba(68,138,255,0.15);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        .action-btn.add:hover {
+            background: var(--green);
+            color: black;
+        }
+        .action-btn.remove:hover {
+            background: var(--red);
+            color: white;
+        }
+        .action-btn.set:hover {
+            background: var(--blue);
+            color: white;
+        }
+
+        /* Amount Input */
+        .amount-input {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .amount-input input {
+            flex: 2;
+            padding: 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .amount-input input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        /* Reason Input */
+        .reason-input {
+            margin-bottom: 20px;
+        }
+        .reason-input input {
+            width: 100%;
+            padding: 12px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 13px;
+        }
+        .reason-input input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        .reason-input input::placeholder {
+            color: var(--text4);
+        }
+
+        /* History Section */
+        .history-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .history-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .export-btn {
+            background: rgba(68,138,255,0.15);
+            border: 1px solid var(--blue);
+            color: var(--blue);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .export-btn:hover {
+            background: var(--blue);
+            color: white;
+        }
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+        }
+        .history-date {
+            color: var(--text4);
+            min-width: 100px;
+        }
+        .history-type {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .history-type.add {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+        }
+        .history-type.remove {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+        }
+        .history-type.set {
+            background: rgba(68,138,255,0.15);
+            color: var(--blue);
+        }
+        .history-amount {
+            font-weight: 700;
+            min-width: 80px;
+            text-align: right;
+        }
+        .history-reason {
+            flex: 1;
+            padding-left: 15px;
+            color: var(--text3);
+        }
+        .history-by {
+            min-width: 60px;
+            text-align: right;
+            color: var(--text4);
+            font-size: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text4);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.error {
+            background: var(--red);
+        }
+
+        @media (max-width: 550px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .action-buttons { flex-direction: column; }
+            .amount-input { flex-direction: column; }
+            .history-item { flex-wrap: wrap; gap: 8px; }
+            .history-date { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1>💰 <span>BALANCE</span> MANAGER</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value blue" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green" id="totalBalance">₹0</div>
+                <div class="stat-label">Total Balance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange" id="avgBalance">₹0</div>
+                <div class="stat-label">Average Balance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue" id="todayTransactions">0</div>
+                <div class="stat-label">Today Txns</div>
+            </div>
+        </div>
+
+        <!-- Search User -->
+        <div class="search-card">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search by User ID or Username..." oninput="searchUsers()">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <!-- Selected User Card -->
+        <div id="selectedUserCard" style="display: none;">
+            <div class="user-card">
+                <div class="user-header">
+                    <div class="user-info">
+                        <div class="user-name" id="userName">-</div>
+                        <div class="user-id" id="userId">-</div>
+                    </div>
+                    <div class="current-balance">
+                        <div class="balance-label">Current Balance</div>
+                        <div class="balance-amount" id="userBalance">₹0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Actions -->
+        <div class="user-card" id="actionCard" style="display: none;">
+            <!-- Preset Amounts -->
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="setAmount(100)">₹100</button>
+                <button class="preset-btn" onclick="setAmount(500)">₹500</button>
+                <button class="preset-btn" onclick="setAmount(1000)">₹1,000</button>
+                <button class="preset-btn" onclick="setAmount(2000)">₹2,000</button>
+                <button class="preset-btn" onclick="setAmount(5000)">₹5,000</button>
+                <button class="preset-btn" onclick="setAmount(10000)">₹10,000</button>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="amount-input">
+                <input type="number" id="amountInput" placeholder="Enter amount (₹)" value="0">
+            </div>
+
+            <!-- Reason Input -->
+            <div class="reason-input">
+                <input type="text" id="reasonInput" placeholder="📝 Transaction reason (optional)">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn add" onclick="addBalance()">
+                    <i class="fas fa-plus-circle"></i> ADD
+                </button>
+                <button class="action-btn remove" onclick="removeBalance()">
+                    <i class="fas fa-minus-circle"></i> REMOVE
+                </button>
+                <button class="action-btn set" onclick="setBalance()">
+                    <i class="fas fa-sync-alt"></i> SET
+                </button>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="history-card" id="historyCard" style="display: none;">
+            <div class="history-title">
+                <span><i class="fas fa-history"></i> Transaction History</span>
+                <button class="export-btn" onclick="exportHistory()">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">No transactions yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let allUsers = [];
+        let selectedUserId = null;
+        let selectedUserData = null;
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function setAmount(amount) {
+            document.getElementById('amountInput').value = amount;
+        }
+
+        async function loadStats() {
+            const snapshot = await db.ref('users').once('value');
+            const users = snapshot.val();
+            
+            let totalUsers = 0;
+            let totalBalance = 0;
+            
+            if (users) {
+                totalUsers = Object.keys(users).length;
+                Object.values(users).forEach(user => {
+                    totalBalance += (user.balance || 0);
+                });
+            }
+            
+            document.getElementById('totalUsers').textContent = totalUsers;
+            document.getElementById('totalBalance').textContent = '₹' + totalBalance.toLocaleString();
+            document.getElementById('avgBalance').textContent = '₹' + Math.floor(totalBalance / (totalUsers || 1)).toLocaleString();
+            
+            // Today transactions count
+            const today = new Date().toDateString();
+            let todayCount = 0;
+            if (users) {
+                Object.values(users).forEach(user => {
+                    if (user.activity) {
+                        Object.values(user.activity).forEach(act => {
+                            if (new Date(act.time).toDateString() === today && 
+                                (act.text.includes('added') || act.text.includes('removed') || act.text.includes('set'))) {
+                                todayCount++;
+                            }
+                        });
+                    }
+                });
+            }
+            document.getElementById('todayTransactions').textContent = todayCount;
+        }
+
+        async function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!searchTerm) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+            
+            const snapshot = await db.ref('users').once('value');
+            const users = snapshot.val();
+            const results = [];
+            
+            if (users) {
+                Object.entries(users).forEach(([id, data]) => {
+                    const username = (data.username || '').toLowerCase();
+                    if (id.toLowerCase().includes(searchTerm) || username.includes(searchTerm)) {
+                        results.push({ id, ...data });
+                    }
+                });
+            }
+            
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding: 12px; color: var(--text4);">No users found</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = results.slice(0, 10).map(user => `
+                <div class="search-result-item" onclick="selectUser('${user.id}')">
+                    <div>
+                        <div class="result-name">${user.username || 'User'}</div>
+                        <div class="result-id">${user.id.substring(0, 16)}...</div>
+                    </div>
+                    <div class="result-balance">₹${(user.balance || 0).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        async function selectUser(userId) {
+            const snapshot = await db.ref(`users/${userId}`).once('value');
+            selectedUserData = snapshot.val();
+            selectedUserId = userId;
+            
+            if (selectedUserData) {
+                document.getElementById('userName').textContent = selectedUserData.username || 'User';
+                document.getElementById('userId').textContent = userId;
+                document.getElementById('userBalance').textContent = '₹' + (selectedUserData.balance || 0).toLocaleString();
+                
+                document.getElementById('selectedUserCard').style.display = 'block';
+                document.getElementById('actionCard').style.display = 'block';
+                document.getElementById('historyCard').style.display = 'block';
+                document.getElementById('amountInput').value = '';
+                document.getElementById('reasonInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+                document.getElementById('searchInput').value = selectedUserData.username || userId.substring(0, 16);
+                
+                loadTransactionHistory(userId);
+            }
+        }
+
+        async function loadTransactionHistory(userId) {
+            const snapshot = await db.ref(`users/${userId}/activity`).once('value');
+            const activities = snapshot.val();
+            const historyList = document.getElementById('historyList');
+            
+            if (!activities) {
+                historyList.innerHTML = '<div class="empty-state">No transactions yet</div>';
+                return;
+            }
+            
+            const activityArray = Object.entries(activities);
+            const balanceActivities = activityArray.filter(([_, act]) => 
+                act.text && (act.text.includes('added') || act.text.includes('removed') || act.text.includes('set'))
+            ).sort((a, b) => b[1].time - a[1].time);
+            
+            if (balanceActivities.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">No balance transactions</div>';
+                return;
+            }
+            
+            let html = '';
+            balanceActivities.slice(0, 50).forEach(([id, act]) => {
+                const date = new Date(act.time).toLocaleString();
+                let type = '';
+                let amount = '';
+                let amountClass = '';
+                
+                if (act.text.includes('added')) {
+                    type = 'add';
+                    const match = act.text.match(/₹([\d,]+)/);
+                    amount = match ? `+₹${match[1]}` : '+';
+                    amountClass = 'add';
+                } else if (act.text.includes('removed')) {
+                    type = 'remove';
+                    const match = act.text.match(/₹([\d,]+)/);
+                    amount = match ? `-₹${match[1]}` : '-';
+                    amountClass = 'remove';
+                } else if (act.text.includes('set')) {
+                    type = 'set';
+                    const match = act.text.match(/₹([\d,]+)/);
+                    amount = match ? `=₹${match[1]}` : '=';
+                    amountClass = 'set';
+                }
+                
+                const by = act.text.includes('Admin') ? 'Admin' : 'User';
+                
+                html += `
+                    <div class="history-item">
+                        <div class="history-date">${date}</div>
+                        <div class="history-type ${amountClass}">${type.toUpperCase()}</div>
+                        <div class="history-amount ${amountClass}">${amount}</div>
+                        <div class="history-reason">${act.text}</div>
+                        <div class="history-by">${by}</div>
+                    </div>
+                `;
+            });
+            
+            historyList.innerHTML = html;
+        }
+
+        async function addBalance() {
+            if (!selectedUserId) {
+                showToast('Please select a user first', true);
+                return;
+            }
+            
+            const amount = parseInt(document.getElementById('amountInput').value);
+            const reason = document.getElementById('reasonInput').value.trim();
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount', true);
+                return;
+            }
+            
+            try {
+                const currentBalance = selectedUserData.balance || 0;
+                const newBalance = currentBalance + amount;
+                
+                await db.ref(`users/${selectedUserId}`).update({
+                    balance: newBalance
+                });
+                
+                const activityText = reason ? `💰 Admin added ₹${amount.toLocaleString()} - ${reason}` : `💰 Admin added ₹${amount.toLocaleString()}`;
+                await db.ref(`users/${selectedUserId}/activity`).push({
+                    text: activityText,
+                    time: Date.now()
+                });
+                
+                selectedUserData.balance = newBalance;
+                document.getElementById('userBalance').textContent = '₹' + newBalance.toLocaleString();
+                document.getElementById('amountInput').value = '';
+                document.getElementById('reasonInput').value = '';
+                
+                showToast(`✅ Added ₹${amount.toLocaleString()} successfully!`);
+                loadTransactionHistory(selectedUserId);
+                loadStats();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function removeBalance() {
+            if (!selectedUserId) {
+                showToast('Please select a user first', true);
+                return;
+            }
+            
+            const amount = parseInt(document.getElementById('amountInput').value);
+            const reason = document.getElementById('reasonInput').value.trim();
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount', true);
+                return;
+            }
+            
+            const currentBalance = selectedUserData.balance || 0;
+            if (amount > currentBalance) {
+                showToast('Insufficient balance!', true);
+                return;
+            }
+            
+            try {
+                const newBalance = currentBalance - amount;
+                
+                await db.ref(`users/${selectedUserId}`).update({
+                    balance: newBalance
+                });
+                
+                const activityText = reason ? `💰 Admin removed ₹${amount.toLocaleString()} - ${reason}` : `💰 Admin removed ₹${amount.toLocaleString()}`;
+                await db.ref(`users/${selectedUserId}/activity`).push({
+                    text: activityText,
+                    time: Date.now()
+                });
+                
+                selectedUserData.balance = newBalance;
+                document.getElementById('userBalance').textContent = '₹' + newBalance.toLocaleString();
+                document.getElementById('amountInput').value = '';
+                document.getElementById('reasonInput').value = '';
+                
+                showToast(`✅ Removed ₹${amount.toLocaleString()} successfully!`);
+                loadTransactionHistory(selectedUserId);
+                loadStats();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function setBalance() {
+            if (!selectedUserId) {
+                showToast('Please select a user first', true);
+                return;
+            }
+            
+            const amount = parseInt(document.getElementById('amountInput').value);
+            const reason = document.getElementById('reasonInput').value.trim();
+            
+            if (!amount || amount < 0) {
+                showToast('Please enter a valid amount', true);
+                return;
+            }
+            
+            try {
+                await db.ref(`users/${selectedUserId}`).update({
+                    balance: amount
+                });
+                
+                const activityText = reason ? `💰 Admin set balance to ₹${amount.toLocaleString()} - ${reason}` : `💰 Admin set balance to ₹${amount.toLocaleString()}`;
+                await db.ref(`users/${selectedUserId}/activity`).push({
+                    text: activityText,
+                    time: Date.now()
+                });
+                
+                selectedUserData.balance = amount;
+                document.getElementById('userBalance').textContent = '₹' + amount.toLocaleString();
+                document.getElementById('amountInput').value = '';
+                document.getElementById('reasonInput').value = '';
+                
+                showToast(`✅ Balance set to ₹${amount.toLocaleString()} successfully!`);
+                loadTransactionHistory(selectedUserId);
+                loadStats();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        function exportHistory() {
+            if (!selectedUserId) {
+                showToast('Please select a user first', true);
+                return;
+            }
+            
+            db.ref(`users/${selectedUserId}/activity`).once('value', (snapshot) => {
+                const activities = snapshot.val();
+                if (!activities) {
+                    showToast('No data to export', true);
+                    return;
+                }
+                
+                let csv = 'Date,Type,Amount,Reason\n';
+                Object.values(activities).forEach(act => {
+                    const date = new Date(act.time).toLocaleString();
+                    let type = 'Other';
+                    let amount = '';
+                    
+                    if (act.text.includes('added')) {
+                        type = 'Add';
+                        const match = act.text.match(/₹([\d,]+)/);
+                        amount = match ? match[1] : '';
+                    } else if (act.text.includes('removed')) {
+                        type = 'Remove';
+                        const match = act.text.match(/₹([\d,]+)/);
+                        amount = match ? match[1] : '';
+                    } else if (act.text.includes('set')) {
+                        type = 'Set';
+                        const match = act.text.match(/₹([\d,]+)/);
+                        amount = match ? match[1] : '';
+                    }
+                    
+                    csv += `${date},${type},${amount},${act.text}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `balance_history_${selectedUserId}_${Date.now()}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('✅ Exported successfully!');
+            });
+        }
+
+        // Initial load
+        loadStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Package</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --blue: #448AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.orange { color: var(--orange); }
+
+        /* Packages Grid */
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .package-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+        .package-card:hover {
+            border-color: var(--blue);
+        }
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .package-name {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .popular-badge {
+            background: linear-gradient(135deg, var(--orange), #d97706);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+        }
+        .active-badge {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+        .inactive-badge {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        /* Price Section */
+        .price-section {
+            background: var(--input);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 15px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .price-label {
+            font-size: 11px;
+            color: var(--text3);
+        }
+        .price-input {
+            width: 120px;
+            padding: 8px 12px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            text-align: right;
+        }
+        .price-input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        .discount-badge {
+            background: rgba(46,213,115,0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 600;
+        }
+        .final-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--blue);
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 34px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 2px;
+            background-color: var(--text3);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--blue);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(21px);
+            background-color: white;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .save-btn {
+            flex: 1;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .save-btn:hover {
+            transform: translateY(-2px);
+        }
+        .reset-btn {
+            padding: 10px 15px;
+            background: rgba(255,165,2,0.15);
+            border: 1px solid var(--orange);
+            border-radius: 10px;
+            color: var(--orange);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover {
+            background: var(--orange);
+            color: white;
+        }
+
+        /* Add Package Card */
+        .add-card {
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .add-card:hover {
+            border-color: var(--blue);
+            background: rgba(68,138,255,0.03);
+        }
+        .add-card i {
+            font-size: 40px;
+            color: var(--blue);
+        }
+        .add-card span {
+            font-size: 14px;
+            color: var(--text3);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .modal-btn-confirm {
+            background: var(--blue);
+            color: white;
+        }
+        .modal-btn-cancel {
+            background: var(--input);
+            border: 1px solid var(--border);
+            color: var(--text3);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.error {
+            background: var(--red);
+        }
+
+        @media (max-width: 700px) {
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1>📦 <span>PACKAGE</span> MANAGER</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value blue" id="totalPackages">0</div>
+                <div class="stat-label">Total Packages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green" id="activePackages">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange" id="inactivePackages">0</div>
+                <div class="stat-label">Inactive</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue" id="avgPrice">₹0</div>
+                <div class="stat-label">Avg Price</div>
+            </div>
+        </div>
+
+        <!-- Packages Grid -->
+        <div class="packages-grid" id="packagesGrid"></div>
+
+        <!-- Add Package Card -->
+        <div class="add-card" onclick="openAddModal()">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add New Package</span>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-content">
+            <div class="modal-title">Add New Package</div>
+            <input type="text" class="modal-input" id="newPackageName" placeholder="Package Name (e.g., 2 Hour Package)">
+            <input type="number" class="modal-input" id="newPackagePrice" placeholder="Price (₹)" value="1000">
+            <input type="number" class="modal-input" id="newPackageHours" placeholder="Validity (Hours)" value="1">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeAddModal()">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" onclick="addNewPackage()">Add Package</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let allPackages = {};
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function calculateFinalPrice(price, discount) {
+            return price - (price * discount / 100);
+        }
+
+        async function loadPackages() {
+            const snapshot = await db.ref('app_configs/packages').once('value');
+            allPackages = snapshot.val() || {};
+            
+            updateStats();
+            renderPackages();
+        }
+
+        function updateStats() {
+            const packages = Object.values(allPackages);
+            const total = packages.length;
+            const active = packages.filter(p => p.isActive !== false).length;
+            const inactive = total - active;
+            const avgPrice = packages.length > 0 ? Math.floor(packages.reduce((sum, p) => sum + (p.originalPrice || 0), 0) / packages.length) : 0;
+            
+            document.getElementById('totalPackages').textContent = total;
+            document.getElementById('activePackages').textContent = active;
+            document.getElementById('inactivePackages').textContent = inactive;
+            document.getElementById('avgPrice').textContent = '₹' + avgPrice.toLocaleString();
+        }
+
+        function renderPackages() {
+            const container = document.getElementById('packagesGrid');
+            
+            if (Object.keys(allPackages).length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text4);">No packages found. Click + to add.</div>';
+                return;
+            }
+            
+            let html = '';
+            Object.entries(allPackages).forEach(([id, pkg]) => {
+                const finalPrice = calculateFinalPrice(pkg.originalPrice || 0, pkg.discountPercent || 0);
+                const isActive = pkg.isActive !== false;
+                const isPopular = pkg.popular === true;
+                
+                html += `
+                    <div class="package-card">
+                        <div class="package-header">
+                            <div class="package-name">${pkg.name || 'Package'}</div>
+                            <div>
+                                ${isPopular ? '<span class="popular-badge"><i class="fas fa-fire"></i> POPULAR</span>' : ''}
+                                <span class="${isActive ? 'active-badge' : 'inactive-badge'}" style="margin-left: 8px;">
+                                    ${isActive ? 'ACTIVE' : 'INACTIVE'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="price-section">
+                            <div class="price-row">
+                                <span class="price-label">💰 Original Price (₹)</span>
+                                <input type="number" class="price-input" id="price_${id}" value="${pkg.originalPrice || 0}" step="100">
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">🎯 Discount (%)</span>
+                                <input type="number" class="price-input" id="discount_${id}" value="${pkg.discountPercent || 0}" step="1" min="0" max="100">
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">⏱️ Validity (Hours)</span>
+                                <input type="number" class="price-input" id="hours_${id}" value="${pkg.hours || pkg.validity || 1}" step="1">
+                            </div>
+                            ${pkg.discountPercent > 0 ? `<div class="discount-badge"><i class="fas fa-tag"></i> ${pkg.discountPercent}% OFF Limited Offer!</div>` : ''}
+                            <div class="final-price" id="final_${id}">₹${Math.round(finalPrice).toLocaleString()}</div>
+                        </div>
+                        
+                        <div class="price-row">
+                            <span class="price-label">⭐ Popular Package</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="popular_${id}" ${isPopular ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">🔘 Active Status</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="active_${id}" ${isActive ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="save-btn" onclick="savePackage('${id}')">
+                                <i class="fas fa-save"></i> SAVE
+                            </button>
+                            <button class="reset-btn" onclick="resetPackage('${id}')">
+                                <i class="fas fa-sync-alt"></i> RESET
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners for real-time final price calculation
+            Object.keys(allPackages).forEach(id => {
+                const priceInput = document.getElementById(`price_${id}`);
+                const discountInput = document.getElementById(`discount_${id}`);
+                const finalSpan = document.getElementById(`final_${id}`);
+                
+                const updateFinal = () => {
+                    const price = parseFloat(priceInput?.value) || 0;
+                    const discount = parseFloat(discountInput?.value) || 0;
+                    const final = price - (price * discount / 100);
+                    if (finalSpan) finalSpan.textContent = '₹' + Math.round(final).toLocaleString();
+                };
+                
+                if (priceInput) priceInput.addEventListener('input', updateFinal);
+                if (discountInput) discountInput.addEventListener('input', updateFinal);
+            });
+        }
+
+        async function savePackage(packageId) {
+            const price = parseInt(document.getElementById(`price_${packageId}`).value) || 0;
+            const discount = parseInt(document.getElementById(`discount_${packageId}`).value) || 0;
+            const hours = parseInt(document.getElementById(`hours_${packageId}`).value) || 1;
+            const isPopular = document.getElementById(`popular_${packageId}`).checked;
+            const isActive = document.getElementById(`active_${packageId}`).checked;
+            const finalPrice = price - (price * discount / 100);
+            const packageName = allPackages[packageId]?.name || 'Package';
+            
+            const updatedPackage = {
+                name: packageName,
+                originalPrice: price,
+                discountPercent: discount,
+                finalPrice: Math.round(finalPrice),
+                hours: hours,
+                validity: hours,
+                isActive: isActive,
+                popular: isPopular,
+                updatedAt: Date.now()
+            };
+            
+            try {
+                await db.ref(`app_configs/packages/${packageId}`).update(updatedPackage);
+                allPackages[packageId] = { ...allPackages[packageId], ...updatedPackage };
+                showToast(`✅ ${packageName} saved successfully!`);
+                renderPackages();
+                updateStats();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function resetPackage(packageId) {
+            if (!confirm(`Reset package "${allPackages[packageId]?.name}" to default values?`)) return;
+            
+            const defaultPackage = {
+                name: allPackages[packageId]?.name || 'Package',
+                originalPrice: 1000,
+                discountPercent: 0,
+                finalPrice: 1000,
+                hours: 1,
+                validity: 1,
+                isActive: true,
+                popular: false,
+                updatedAt: Date.now()
+            };
+            
+            try {
+                await db.ref(`app_configs/packages/${packageId}`).update(defaultPackage);
+                allPackages[packageId] = { ...allPackages[packageId], ...defaultPackage };
+                showToast(`✅ Package reset to default!`);
+                renderPackages();
+                updateStats();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            document.getElementById('newPackageName').value = '';
+            document.getElementById('newPackagePrice').value = '1000';
+            document.getElementById('newPackageHours').value = '1';
+        }
+
+        async function addNewPackage() {
+            const name = document.getElementById('newPackageName').value.trim();
+            const price = parseInt(document.getElementById('newPackagePrice').value) || 1000;
+            const hours = parseInt(document.getElementById('newPackageHours').value) || 1;
+            
+            if (!name) {
+                showToast('Please enter package name', true);
+                return;
+            }
+            
+            const newPackageId = 'pkg_' + Date.now();
+            const newPackage = {
+                name: name,
+                originalPrice: price,
+                discountPercent: 0,
+                finalPrice: price,
+                hours: hours,
+                validity: hours,
+                isActive: true,
+                popular: false,
+                createdAt: Date.now(),
+                order: Object.keys(allPackages).length + 1
+            };
+            
+            try {
+                await db.ref(`app_configs/packages/${newPackageId}`).set(newPackage);
+                allPackages[newPackageId] = newPackage;
+                showToast(`✅ New package "${name}" added!`);
+                closeAddModal();
+                renderPackages();
+                updateStats();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        // Load packages on page load
+        loadPackages();
+    </script>
+</body>
+</html>

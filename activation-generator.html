@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Activation Code Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--gold);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .icon-lg {
+            width: 70px;
+            height: 70px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+        }
+        .icon-lg i {
+            font-size: 32px;
+            color: var(--gold);
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .title span {
+            color: var(--gold);
+        }
+        .subtitle {
+            font-size: 12px;
+            color: var(--text3);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-label {
+            font-size: 11px;
+            color: var(--text3);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--gold), #e6b800);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+
+        .key-display {
+            background: var(--input);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+        .key-label {
+            font-size: 11px;
+            color: var(--text3);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .key-value {
+            font-size: 16px;
+            font-weight: 800;
+            font-family: monospace;
+            color: var(--gold);
+            letter-spacing: 2px;
+            word-break: break-all;
+            background: rgba(255,215,0,0.1);
+            padding: 12px;
+            border-radius: 10px;
+        }
+        .copy-btn {
+            background: rgba(68,138,255,0.15);
+            border: 1px solid var(--blue);
+            color: var(--blue);
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .copy-btn:hover {
+            background: var(--blue);
+            color: white;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .batch-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 100px;
+        }
+        .batch-btn.reset {
+            background: rgba(68,138,255,0.15);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+        }
+        .batch-btn.ban {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .batch-btn.unban {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        .batch-btn.delete {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .batch-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            flex: 1;
+            background: var(--input);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .stat-number {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--gold);
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--input);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .select-all input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--gold);
+        }
+        .code-checkbox {
+            margin-right: 12px;
+        }
+        .code-checkbox input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--gold);
+        }
+
+        .codes-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .code-item {
+            background: var(--input);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .code-item:hover {
+            background: rgba(255,215,0,0.05);
+            transform: translateX(5px);
+        }
+        .code-value {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--gold);
+        }
+        .code-details {
+            font-size: 10px;
+            color: var(--text4);
+            margin-top: 3px;
+        }
+        .status-badge {
+            font-size: 9px;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .status-active {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+        }
+        .status-used {
+            background: rgba(255,165,2,0.15);
+            color: var(--orange);
+        }
+        .status-banned {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+        }
+        .code-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .action-icon {
+            background: rgba(68,138,255,0.15);
+            border: none;
+            color: var(--blue);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .action-icon.danger {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+        }
+        .action-icon.warning {
+            background: rgba(255,165,2,0.15);
+            color: var(--orange);
+        }
+        .action-icon.success {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.error {
+            background: var(--red);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='admin-dashboard.html'"><i class="fas fa-arrow-left"></i></button>
+        <h1>🎟️ <span>ACTIVATION</span> CODE</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="container">
+        <div class="card">
+            <div class="icon-lg">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div class="title"><span>ACTIVATION</span> CODE GENERATOR</div>
+            <div class="subtitle">Generate activation codes for Crazy Time Signal</div>
+
+            <div class="input-group">
+                <label class="input-label">📝 CODE PREFIX (OPTIONAL)</label>
+                <input type="text" class="input-field" id="codePrefix" placeholder="CRAZY" maxlength="10">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">🔢 NUMBER OF CODES</label>
+                <input type="number" class="input-field" id="codeCount" value="1" min="1" max="10">
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateCodes()">
+                <i class="fas fa-plus-circle"></i> GENERATE CODE(S)
+            </button>
+
+            <div id="codesDisplay" class="key-display">
+                <div class="key-label">🎟️ NEW ACTIVATION CODE(S) GENERATED</div>
+                <div id="generatedCodesList" style="max-height: 200px; overflow-y: auto;"></div>
+                <button class="copy-btn" id="copyCodesBtn" onclick="copyAllCodes()">
+                    <i class="fas fa-copy"></i> COPY ALL CODES
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-box" onclick="filterCodes('all')">
+                <div class="stat-number" id="totalCodes">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-box" onclick="filterCodes('active')">
+                <div class="stat-number" id="activeCodes">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-box" onclick="filterCodes('used')">
+                <div class="stat-number" id="usedCodes">0</div>
+                <div class="stat-label">Used</div>
+            </div>
+            <div class="stat-box" onclick="filterCodes('banned')">
+                <div class="stat-number" id="bannedCodes">0</div>
+                <div class="stat-label">Banned</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="title" style="font-size: 16px; margin-bottom: 15px;">⚡ BATCH ACTIONS</div>
+            <div class="batch-actions">
+                <button class="batch-btn reset" onclick="batchResetCodes()">
+                    <i class="fas fa-sync-alt"></i> Reset All Active
+                </button>
+                <button class="batch-btn ban" onclick="batchBanCodes()">
+                    <i class="fas fa-ban"></i> Ban All Active
+                </button>
+                <button class="batch-btn unban" onclick="batchUnbanCodes()">
+                    <i class="fas fa-check-circle"></i> Unban All
+                </button>
+                <button class="batch-btn delete" onclick="batchDeleteAllCodes()">
+                    <i class="fas fa-trash"></i> Delete All Codes
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="select-all">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                <label for="selectAllCheckbox" style="color: var(--text2);">Select All Codes</label>
+                <div style="flex:1;"></div>
+                <button class="action-icon" onclick="deleteSelectedCodes()" title="Delete Selected" style="background: rgba(255,71,87,0.15); color: var(--red);">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="action-icon success" onclick="resetSelectedCodes()" title="Reset Selected" style="background: rgba(68,138,255,0.15); color: var(--blue);">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="action-icon warning" onclick="banSelectedCodes()" title="Ban Selected" style="background: rgba(255,165,2,0.15); color: var(--orange);">
+                    <i class="fas fa-ban"></i>
+                </button>
+            </div>
+            <div class="codes-list" id="codesList">
+                <div style="text-align: center; padding: 20px; color: var(--text4);">Loading codes...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let allCodes = [];
+        let currentFilter = 'all';
+        let lastGeneratedCodes = [];
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function generateRandomCode(prefix = '') {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let randomPart = '';
+            for (let i = 0; i < 12; i++) {
+                randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+                if (i === 3 || i === 7) randomPart += '-';
+            }
+            if (prefix) {
+                return prefix.toUpperCase() + '-' + randomPart;
+            }
+            return randomPart;
+        }
+
+        async function generateCodes() {
+            const prefix = document.getElementById('codePrefix').value.trim();
+            const count = parseInt(document.getElementById('codeCount').value) || 1;
+            
+            if (count > 10) {
+                showToast('Maximum 10 codes at a time', true);
+                return;
+            }
+            
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GENERATING...';
+            
+            const generatedCodes = [];
+            
+            try {
+                for (let i = 0; i < count; i++) {
+                    const code = generateRandomCode(prefix);
+                    const codeData = {
+                        originalCode: code,
+                        active: true,
+                        used: false,
+                        createdAt: Date.now(),
+                        createdBy: 'Admin'
+                    };
+                    
+                    await db.ref(`activation_codes/${code}`).set(codeData);
+                    generatedCodes.push(code);
+                }
+                
+                lastGeneratedCodes = generatedCodes;
+                displayGeneratedCodes(generatedCodes);
+                showToast(`✅ ${count} code(s) generated successfully!`);
+                loadCodes();
+                
+                setTimeout(() => {
+                    document.getElementById('codesDisplay').style.display = 'none';
+                }, 30000);
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-plus-circle"></i> GENERATE CODE(S)';
+            }
+        }
+
+        function displayGeneratedCodes(codes) {
+            const container = document.getElementById('generatedCodesList');
+            let html = '';
+            codes.forEach(code => {
+                html += `<div style="background:rgba(255,215,0,0.1); padding:10px; margin-bottom:8px; border-radius:8px; font-family:monospace; font-size:13px; color:var(--gold); letter-spacing:1px;">${code}</div>`;
+            });
+            container.innerHTML = html;
+            document.getElementById('codesDisplay').style.display = 'block';
+        }
+
+        // FIXED COPY FUNCTION - Working properly
+        async function copyAllCodes() {
+            if (lastGeneratedCodes.length === 0) {
+                showToast('No codes to copy!', true);
+                return;
+            }
+            
+            const allCodesText = lastGeneratedCodes.join('\n');
+            
+            try {
+                // Try modern clipboard API
+                await navigator.clipboard.writeText(allCodesText);
+                showToast(`✅ ${lastGeneratedCodes.length} codes copied to clipboard!`);
+                
+                const copyBtn = document.getElementById('copyCodesBtn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+                
+            } catch (err) {
+                // Fallback method for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = allCodesText;
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                
+                try {
+                    document.execCommand('copy');
+                    showToast(`✅ ${lastGeneratedCodes.length} codes copied!`);
+                    const copyBtn = document.getElementById('copyCodesBtn');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                    }, 2000);
+                } catch (e) {
+                    showToast('Failed to copy. Please copy manually.', true);
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function getCodeStatus(data) {
+            if (data.active === false && data.banned === true) return 'banned';
+            if (data.used === true) return 'used';
+            return 'active';
+        }
+
+        async function loadCodes() {
+            const snapshot = await db.ref('activation_codes').once('value');
+            const codes = snapshot.val();
+            
+            allCodes = [];
+            let total = 0, active = 0, used = 0, banned = 0;
+            
+            if (codes) {
+                Object.entries(codes).forEach(([code, data]) => {
+                    let status = 'active';
+                    if (data.active === false) status = 'banned';
+                    else if (data.used === true) status = 'used';
+                    else status = 'active';
+                    
+                    allCodes.push({ code, data, status });
+                    total++;
+                    if (status === 'active') active++;
+                    else if (status === 'used') used++;
+                    else if (status === 'banned') banned++;
+                });
+            }
+            
+            document.getElementById('totalCodes').textContent = total;
+            document.getElementById('activeCodes').textContent = active;
+            document.getElementById('usedCodes').textContent = used;
+            document.getElementById('bannedCodes').textContent = banned;
+            
+            renderCodes();
+        }
+
+        function renderCodes() {
+            const filtered = allCodes.filter(c => {
+                if (currentFilter === 'all') return true;
+                return c.status === currentFilter;
+            });
+            
+            const container = document.getElementById('codesList');
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text4);">No codes found</div>';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(({ code, data, status }) => {
+                const createdDate = data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'Unknown';
+                const statusText = status === 'active' ? 'ACTIVE' : (status === 'used' ? 'USED' : 'BANNED');
+                const statusClass = status === 'active' ? 'status-active' : (status === 'used' ? 'status-used' : 'status-banned');
+                
+                html += `
+                    <div class="code-item" data-code="${code}">
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" class="code-checkbox" data-code="${code}" style="margin-right: 12px;">
+                            <div>
+                                <div class="code-value">${code}</div>
+                                <div class="code-details">Created: ${createdDate}</div>
+                            </div>
+                        </div>
+                        <div class="code-actions">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <button class="action-icon" onclick="resetCode('${code}')" title="Reset">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="action-icon warning" onclick="banCode('${code}')" title="Ban">
+                                <i class="fas fa-ban"></i>
+                            </button>
+                            <button class="action-icon danger" onclick="deleteCode('${code}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            
+            document.querySelectorAll('.code-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateSelectAll);
+            });
+        }
+
+        function updateSelectAll() {
+            const allCheckboxes = document.querySelectorAll('.code-checkbox');
+            const checkedBoxes = document.querySelectorAll('.code-checkbox:checked');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            selectAll.checked = allCheckboxes.length === checkedBoxes.length && allCheckboxes.length > 0;
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox');
+            document.querySelectorAll('.code-checkbox').forEach(cb => {
+                cb.checked = selectAll.checked;
+            });
+        }
+
+        function getSelectedCodes() {
+            const selected = [];
+            document.querySelectorAll('.code-checkbox:checked').forEach(cb => {
+                selected.push(cb.dataset.code);
+            });
+            return selected;
+        }
+
+        function filterCodes(filter) {
+            currentFilter = filter;
+            renderCodes();
+        }
+
+        async function resetCode(code) {
+            try {
+                await db.ref(`activation_codes/${code}`).update({
+                    active: true,
+                    used: false,
+                    resetAt: Date.now()
+                });
+                showToast(`✅ Code "${code.substring(0, 12)}..." reset!`);
+                loadCodes();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function banCode(code) {
+            try {
+                await db.ref(`activation_codes/${code}`).update({
+                    active: false,
+                    banned: true,
+                    bannedAt: Date.now()
+                });
+                showToast(`✅ Code "${code.substring(0, 12)}..." banned!`);
+                loadCodes();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function deleteCode(code) {
+            if (!confirm(`Delete code "${code}" permanently?`)) return;
+            try {
+                await db.ref(`activation_codes/${code}`).remove();
+                showToast(`✅ Code "${code.substring(0, 12)}..." deleted!`);
+                loadCodes();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function batchResetCodes() {
+            const activeCodes = allCodes.filter(c => c.status === 'active');
+            if (activeCodes.length === 0) {
+                showToast('No active codes to reset', true);
+                return;
+            }
+            if (!confirm(`Reset ${activeCodes.length} active code(s)?`)) return;
+            
+            for (const code of activeCodes) {
+                await db.ref(`activation_codes/${code.code}`).update({
+                    active: true,
+                    used: false,
+                    resetAt: Date.now()
+                });
+            }
+            showToast(`✅ ${activeCodes.length} code(s) reset!`);
+            loadCodes();
+        }
+
+        async function batchBanCodes() {
+            const activeCodes = allCodes.filter(c => c.status === 'active');
+            if (activeCodes.length === 0) {
+                showToast('No active codes to ban', true);
+                return;
+            }
+            if (!confirm(`Ban ${activeCodes.length} active code(s)?`)) return;
+            
+            for (const code of activeCodes) {
+                await db.ref(`activation_codes/${code.code}`).update({
+                    active: false,
+                    banned: true,
+                    bannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${activeCodes.length} code(s) banned!`);
+            loadCodes();
+        }
+
+        async function batchUnbanCodes() {
+            const bannedCodes = allCodes.filter(c => c.status === 'banned');
+            if (bannedCodes.length === 0) {
+                showToast('No banned codes to unban', true);
+                return;
+            }
+            if (!confirm(`Unban ${bannedCodes.length} banned code(s)?`)) return;
+            
+            for (const code of bannedCodes) {
+                await db.ref(`activation_codes/${code.code}`).update({
+                    active: true,
+                    banned: false,
+                    used: false,
+                    unbannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${bannedCodes.length} code(s) unbanned!`);
+            loadCodes();
+        }
+
+        async function batchDeleteAllCodes() {
+            if (allCodes.length === 0) {
+                showToast('No codes to delete', true);
+                return;
+            }
+            if (!confirm(`⚠️ PERMANENTLY delete ALL ${allCodes.length} codes? This cannot be undone!`)) return;
+            
+            for (const code of allCodes) {
+                await db.ref(`activation_codes/${code.code}`).remove();
+            }
+            showToast(`✅ ${allCodes.length} codes deleted!`);
+            loadCodes();
+        }
+
+        async function resetSelectedCodes() {
+            const selected = getSelectedCodes();
+            if (selected.length === 0) {
+                showToast('No codes selected', true);
+                return;
+            }
+            if (!confirm(`Reset ${selected.length} selected code(s)?`)) return;
+            
+            for (const code of selected) {
+                await db.ref(`activation_codes/${code}`).update({
+                    active: true,
+                    used: false,
+                    resetAt: Date.now()
+                });
+            }
+            showToast(`✅ ${selected.length} code(s) reset!`);
+            loadCodes();
+        }
+
+        async function banSelectedCodes() {
+            const selected = getSelectedCodes();
+            if (selected.length === 0) {
+                showToast('No codes selected', true);
+                return;
+            }
+            if (!confirm(`Ban ${selected.length} selected code(s)?`)) return;
+            
+            for (const code of selected) {
+                await db.ref(`activation_codes/${code}`).update({
+                    active: false,
+                    banned: true,
+                    bannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${selected.length} code(s) banned!`);
+            loadCodes();
+        }
+
+        async function deleteSelectedCodes() {
+            const selected = getSelectedCodes();
+            if (selected.length === 0) {
+                showToast('No codes selected', true);
+                return;
+            }
+            if (!confirm(`⚠️ Permanently delete ${selected.length} selected code(s)?`)) return;
+            
+            for (const code of selected) {
+                await db.ref(`activation_codes/${code}`).remove();
+            }
+            showToast(`✅ ${selected.length} code(s) deleted!`);
+            loadCodes();
+        }
+
+        loadCodes();
+    </script>
+</body>
+</html>

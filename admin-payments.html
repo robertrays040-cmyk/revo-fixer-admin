@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Payments</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --blue: #448AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--green);
+        }
+
+        .main-content {
+            padding: 12px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        .stat-value.pending { color: var(--orange); }
+        .stat-value.approved { color: var(--green); }
+        .stat-value.rejected { color: var(--red); }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text3);
+            transition: all 0.2s;
+        }
+        .filter-tab.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        /* Payment List */
+        .payment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .payment-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .payment-card.pending { border-left: 3px solid var(--orange); }
+        .payment-card.approved { border-left: 3px solid var(--green); }
+        .payment-card.rejected { border-left: 3px solid var(--red); }
+
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .payment-user {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .payment-amount {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .payment-amount.pending { color: var(--orange); }
+        .payment-amount.approved { color: var(--green); }
+        .payment-amount.rejected { color: var(--red); }
+
+        .payment-method {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(68,138,255,0.1);
+            color: var(--blue);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .detail-item {
+            background: var(--input);
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .detail-item:hover {
+            background: rgba(68,138,255,0.05);
+        }
+        .detail-item.full {
+            grid-column: 1 / -1;
+        }
+        .detail-label {
+            color: var(--text3);
+        }
+        .detail-value {
+            color: var(--text2);
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+        .copy-icon {
+            color: var(--blue);
+            margin-left: 5px;
+            font-size: 10px;
+        }
+        .screenshot-link {
+            color: var(--blue);
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .payment-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .btn-approve {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        .btn-approve:hover {
+            background: var(--green);
+            color: black;
+        }
+        .btn-reject {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .btn-reject:hover {
+            background: var(--red);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text4);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-img {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--red);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-download {
+            margin-top: 15px;
+            background: var(--green);
+            color: black;
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10000;
+            display: none;
+        }
+        .toast.show {
+            display: block;
+        }
+        .toast-success {
+            background: var(--green);
+            color: black;
+        }
+        .toast-error {
+            background: var(--red);
+            color: white;
+        }
+
+        @media (max-width: 550px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            .payment-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1>💰 <span>PAYMENT</span> REQUESTS</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal-overlay" id="imageModal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <img class="modal-img" id="modalImage" src="" alt="Screenshot">
+        <button class="modal-download" onclick="downloadCurrentImage()">📥 Download Screenshot</button>
+    </div>
+
+    <div class="main-content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value pending" id="pendingCount">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value approved" id="approvedCount">0</div>
+                <div class="stat-label">Approved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value rejected" id="rejectedCount">0</div>
+                <div class="stat-label">Rejected</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-tabs">
+            <div class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">All</div>
+            <div class="filter-tab" data-filter="pending" onclick="setFilter('pending', this)">Pending</div>
+            <div class="filter-tab" data-filter="approved" onclick="setFilter('approved', this)">Approved</div>
+            <div class="filter-tab" data-filter="rejected" onclick="setFilter('rejected', this)">Rejected</div>
+        </div>
+
+        <!-- Payment List -->
+        <div class="payment-list" id="paymentList">
+            <div class="empty-state">Loading payments...</div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let allPayments = [];
+        let currentFilter = 'all';
+        let currentImageUrl = '';
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast toast-error show' : 'toast toast-success show';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function copyToClipboard(text, label) {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`✅ ${label} copied!`);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`✅ ${label} copied!`);
+            });
+        }
+
+        function openImage(url) {
+            currentImageUrl = url;
+            document.getElementById('modalImage').src = url;
+            document.getElementById('imageModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('show');
+            currentImageUrl = '';
+        }
+
+        async function downloadCurrentImage() {
+            if (currentImageUrl) {
+                try {
+                    const response = await fetch(currentImageUrl);
+                    const blob = await response.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = 'payment_screenshot_' + Date.now() + '.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                    showToast('✅ Screenshot downloaded!');
+                } catch (e) {
+                    window.open(currentImageUrl, '_blank');
+                }
+            }
+        }
+
+        function setFilter(filter, element) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            element.classList.add('active');
+            renderPayments();
+        }
+
+        function updateStats() {
+            let pending = 0, approved = 0, rejected = 0;
+            allPayments.forEach(p => {
+                if (p.status === 'pending') pending++;
+                else if (p.status === 'approved') approved++;
+                else if (p.status === 'rejected') rejected++;
+            });
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('rejectedCount').textContent = rejected;
+        }
+
+        async function approvePayment(paymentId, userId, amount) {
+            if (!confirm(`Approve payment of ₹${amount.toLocaleString()}?`)) return;
+            
+            try {
+                // Update payment status
+                await db.ref(`paymentRequests/${paymentId}`).update({
+                    status: 'approved',
+                    approvedAt: Date.now()
+                });
+                
+                // Get current user balance
+                const userSnapshot = await db.ref(`users/${userId}`).once('value');
+                const currentBalance = userSnapshot.val()?.balance || 0;
+                const newBalance = currentBalance + amount;
+                
+                // Update user balance
+                await db.ref(`users/${userId}`).update({
+                    balance: newBalance,
+                    totalDeposited: (userSnapshot.val()?.totalDeposited || 0) + amount
+                });
+                
+                // Add activity log
+                await db.ref(`users/${userId}/activity`).push({
+                    text: `💰 ₹${amount.toLocaleString()} added to wallet (Payment Approved)`,
+                    time: Date.now()
+                });
+                
+                showToast(`✅ Payment approved! ₹${amount.toLocaleString()} added to user balance`);
+                loadPayments();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function rejectPayment(paymentId) {
+            if (!confirm('Reject this payment request?')) return;
+            
+            try {
+                await db.ref(`paymentRequests/${paymentId}`).update({
+                    status: 'rejected',
+                    rejectedAt: Date.now()
+                });
+                showToast('❌ Payment rejected!');
+                loadPayments();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        function renderPayments() {
+            const container = document.getElementById('paymentList');
+            let filtered = allPayments;
+            if (currentFilter !== 'all') {
+                filtered = allPayments.filter(p => p.status === currentFilter);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">No payment requests found</div>';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(payment => {
+                const status = payment.status || 'pending';
+                const date = new Date(payment.createdAt).toLocaleString();
+                const method = payment.method || 'N/A';
+                const amount = payment.amount || 0;
+                const currency = payment.currency === 'INR' ? '₹' : (payment.currency === 'BDT' ? '৳' : '$');
+                
+                let userDetails = '';
+                if (payment.userUpiId) {
+                    userDetails = `<div class="detail-item" onclick="copyToClipboard('${payment.userUpiId}', 'UPI ID')">
+                        <span class="detail-label">🏦 UPI ID</span>
+                        <span class="detail-value">${payment.userUpiId} <i class="fas fa-copy copy-icon"></i></span>
+                    </div>`;
+                }
+                if (payment.userBkashNumber) {
+                    userDetails = `<div class="detail-item" onclick="copyToClipboard('${payment.userBkashNumber}', 'Bkash Number')">
+                        <span class="detail-label">📱 Bkash Number</span>
+                        <span class="detail-value">${payment.userBkashNumber} <i class="fas fa-copy copy-icon"></i></span>
+                    </div>`;
+                }
+                if (payment.transactionId) {
+                    userDetails += `<div class="detail-item" onclick="copyToClipboard('${payment.transactionId}', 'Transaction ID')">
+                        <span class="detail-label">🔑 Transaction ID</span>
+                        <span class="detail-value">${payment.transactionId} <i class="fas fa-copy copy-icon"></i></span>
+                    </div>`;
+                }
+                
+                html += `
+                    <div class="payment-card ${status}">
+                        <div class="payment-header">
+                            <div>
+                                <div class="payment-user">${payment.userName || 'User'}</div>
+                                <div style="font-size: 10px; color: var(--text4);">${date}</div>
+                            </div>
+                            <div>
+                                <div class="payment-amount ${status}">${currency}${amount.toLocaleString()}</div>
+                                <span class="payment-method">${method.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-grid">
+                            <div class="detail-item" onclick="copyToClipboard('${payment.userId}', 'User ID')">
+                                <span class="detail-label">🆔 User ID</span>
+                                <span class="detail-value">${payment.userId.substring(0, 12)}... <i class="fas fa-copy copy-icon"></i></span>
+                            </div>
+                            <div class="detail-item" onclick="copyToClipboard('${payment.userPhone || ''}', 'Phone Number')">
+                                <span class="detail-label">📞 Phone</span>
+                                <span class="detail-value">${payment.userPhone || 'N/A'} <i class="fas fa-copy copy-icon"></i></span>
+                            </div>
+                            ${userDetails}
+                            ${payment.screenshot ? `
+                            <div class="detail-item full">
+                                <span class="detail-label">📷 Screenshot</span>
+                                <span class="detail-value">
+                                    <span class="screenshot-link" onclick="openImage('${payment.screenshot}')">👁️ View Screenshot</span>
+                                </span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${status === 'pending' ? `
+                        <div class="payment-actions">
+                            <button class="btn btn-approve" onclick="approvePayment('${payment.id}', '${payment.userId}', ${amount})">
+                                <i class="fas fa-check"></i> APPROVE
+                            </button>
+                            <button class="btn btn-reject" onclick="rejectPayment('${payment.id}')">
+                                <i class="fas fa-times"></i> REJECT
+                            </button>
+                        </div>
+                        ` : `
+                        <div style="margin-top: 10px; font-size: 11px; color: var(--text4); text-align: center;">
+                            ${status === 'approved' ? '✅ Approved' : '❌ Rejected'}
+                        </div>
+                        `}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function loadPayments() {
+            const snapshot = await db.ref('paymentRequests').once('value');
+            const payments = snapshot.val();
+            
+            allPayments = [];
+            if (payments) {
+                Object.entries(payments).forEach(([id, data]) => {
+                    allPayments.push({
+                        id: id,
+                        ...data
+                    });
+                });
+                // Sort by newest first
+                allPayments.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }
+            
+            updateStats();
+            renderPayments();
+        }
+
+        // Initial load
+        loadPayments();
+    </script>
+</body>
+</html>

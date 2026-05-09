@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Users</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --blue: #448AFF;
+            --purple: #a855f7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 12px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 8px;
+            color: var(--text3);
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.orange { color: var(--orange); }
+
+        /* Search */
+        .search-box {
+            margin-bottom: 12px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: var(--blue);
+        }
+
+        /* Delete All Button */
+        .delete-all-btn {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        .delete-all-btn:hover {
+            background: #ff1744;
+            transform: translateY(-2px);
+        }
+
+        /* User List */
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .user-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .user-id {
+            font-size: 9px;
+            color: var(--text4);
+            word-break: break-all;
+            margin-top: 2px;
+        }
+        .user-balance-box {
+            text-align: right;
+        }
+        .user-balance {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--blue);
+        }
+        .user-balance-inr {
+            font-size: 9px;
+            color: var(--text4);
+        }
+
+        /* Package Box */
+        .package-box {
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .package-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .package-label {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 600;
+        }
+        .package-status {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+        }
+        .package-info {
+            font-size: 9px;
+            color: var(--text4);
+            margin-top: 6px;
+        }
+
+        /* Limit Box */
+        .limit-box {
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .limit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .limit-label {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 600;
+        }
+        .limit-input {
+            width: 120px;
+            padding: 6px 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 12px;
+            text-align: right;
+        }
+        .limit-value {
+            font-size: 11px;
+            color: var(--orange);
+            font-weight: 600;
+        }
+
+        /* Details Grid */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .detail-item {
+            background: var(--input);
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+        .d-label {
+            font-size: 8px;
+            color: var(--text3);
+        }
+        .d-value {
+            font-size: 9px;
+            color: var(--text2);
+            margin-top: 2px;
+            word-break: break-all;
+        }
+
+        /* Balance Actions */
+        .balance-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .balance-actions input {
+            flex: 1;
+            padding: 8px 10px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 12px;
+            outline: none;
+            min-width: 100px;
+        }
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn-green {
+            background: var(--green);
+            color: #000;
+        }
+        .btn-red {
+            background: var(--red);
+            color: #fff;
+        }
+        .btn-blue {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text4);
+            font-size: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-success {
+            background: var(--green);
+            color: #000;
+        }
+        .toast-error {
+            background: var(--red);
+            color: #fff;
+        }
+        .toast-warning {
+            background: var(--orange);
+            color: #000;
+        }
+
+        @media (max-width: 550px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            .package-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .limit-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .balance-actions {
+                flex-direction: column;
+            }
+            .balance-actions input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1>👥 <span>USERS</span> MANAGEMENT</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value blue" id="statUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green" id="statActivePkg">0</div>
+                <div class="stat-label">Active Package</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange" id="statPendingPkg">0</div>
+                <div class="stat-label">Pending Package</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue" id="statTotalBalance">0</div>
+                <div class="stat-label">Total Balance</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search by User ID or Username..." oninput="filterUsers()">
+        </div>
+
+        <!-- Delete All Users Button -->
+        <button class="delete-all-btn" onclick="deleteAllUsers()">
+            <i class="fas fa-trash-alt"></i> DELETE ALL USERS
+        </button>
+
+        <!-- User List -->
+        <div class="user-list" id="userList">
+            <div class="empty-state">Loading users...</div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let allUsers = [];
+        let filteredUsers = [];
+        let usdtRate = 94.14;
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast toast-${type} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function loadUsdtRate() {
+            db.ref('appSettings/paymentSettings').on('value', (snap) => {
+                if (snap.exists() && snap.val().usdtRate) {
+                    usdtRate = snap.val().usdtRate;
+                    renderUsers();
+                }
+            });
+        }
+
+        async function loadUsers() {
+            db.ref('users').on('value', (snapshot) => {
+                allUsers = [];
+                if (snapshot.exists()) {
+                    Object.entries(snapshot.val()).forEach(([id, data]) => {
+                        allUsers.push({ id, ...data });
+                    });
+                }
+                // Sort by createdAt - newest first
+                allUsers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                updateStats();
+                filterUsers();
+            });
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                filteredUsers = [...allUsers];
+            } else {
+                filteredUsers = allUsers.filter(user => 
+                    user.id.toLowerCase().includes(searchTerm) ||
+                    (user.username || '').toLowerCase().includes(searchTerm) ||
+                    (user.name || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            renderUsers();
+        }
+
+        async function updateStats() {
+            let activePkg = 0;
+            let pendingPkg = 0;
+            let totalBalance = 0;
+            
+            allUsers.forEach(user => {
+                const balance = user.balance || 0;
+                totalBalance += balance;
+                
+                if (user.package) {
+                    if (user.package.status === 'active') activePkg++;
+                    if (user.package.status === 'pending') pendingPkg++;
+                }
+            });
+            
+            document.getElementById('statUsers').textContent = allUsers.length;
+            document.getElementById('statActivePkg').textContent = activePkg;
+            document.getElementById('statPendingPkg').textContent = pendingPkg;
+            document.getElementById('statTotalBalance').textContent = '₹' + totalBalance.toLocaleString();
+        }
+
+        function getDisplayBalance(user) {
+            const balance = user.balance || 0;
+            return '₹' + balance.toLocaleString();
+        }
+
+        async function updatePackageStatus(userId, newStatus) {
+            try {
+                const userRef = db.ref(`users/${userId}`);
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                const currentPackage = userData?.package || {};
+                
+                let updates = {
+                    'package/status': newStatus
+                };
+                
+                if (newStatus === 'active') {
+                    const hours = currentPackage.hours || 24;
+                    updates['package/endTime'] = Date.now() + (hours * 60 * 60 * 1000);
+                    updates['package/startTime'] = Date.now();
+                } else if (newStatus === 'expired') {
+                    updates['package/endTime'] = 0;
+                }
+                
+                await userRef.update(updates);
+                
+                await db.ref(`users/${userId}/activity`).push({
+                    text: `📦 Package status changed to ${newStatus.toUpperCase()}`,
+                    time: Date.now()
+                });
+                
+                showToast(`✅ Package status updated to ${newStatus.toUpperCase()}`);
+                loadUsers();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function updateDepositLimit(userId, limit) {
+            try {
+                await db.ref(`users/${userId}/depositLimit`).set(limit);
+                showToast(`✅ Deposit limit updated to ₹${limit.toLocaleString()}`);
+                loadUsers();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function addBalance(userId) {
+            const input = document.getElementById(`bal_${userId}`);
+            const amount = parseInt(input.value);
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter valid amount', 'error');
+                return;
+            }
+            
+            try {
+                const userRef = db.ref(`users/${userId}`);
+                const snapshot = await userRef.once('value');
+                const currentBalance = snapshot.val()?.balance || 0;
+                const newBalance = currentBalance + amount;
+                
+                await userRef.update({ balance: newBalance });
+                
+                await db.ref(`users/${userId}/activity`).push({
+                    text: `💰 Admin added ₹${amount.toLocaleString()} to wallet`,
+                    time: Date.now()
+                });
+                
+                input.value = '';
+                showToast(`✅ ₹${amount.toLocaleString()} added successfully!`);
+                loadUsers();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function removeBalance(userId) {
+            const input = document.getElementById(`bal_${userId}`);
+            const amount = parseInt(input.value);
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter valid amount', 'error');
+                return;
+            }
+            
+            try {
+                const userRef = db.ref(`users/${userId}`);
+                const snapshot = await userRef.once('value');
+                const currentBalance = snapshot.val()?.balance || 0;
+                
+                if (amount > currentBalance) {
+                    showToast('Insufficient balance!', 'error');
+                    return;
+                }
+                
+                const newBalance = currentBalance - amount;
+                await userRef.update({ balance: newBalance });
+                
+                await db.ref(`users/${userId}/activity`).push({
+                    text: `💰 Admin removed ₹${amount.toLocaleString()} from wallet`,
+                    time: Date.now()
+                });
+                
+                input.value = '';
+                showToast(`✅ ₹${amount.toLocaleString()} removed successfully!`);
+                loadUsers();
+                
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteAllUsers() {
+            if (allUsers.length === 0) {
+                showToast('No users to delete', 'warning');
+                return;
+            }
+            
+            if (!confirm(`⚠️ PERMANENTLY DELETE ALL ${allUsers.length} USERS? This cannot be undone!`)) {
+                return;
+            }
+            
+            let deleted = 0;
+            for (const user of allUsers) {
+                await db.ref(`users/${user.id}`).remove();
+                deleted++;
+            }
+            
+            showToast(`✅ ${deleted} users deleted successfully!`);
+            loadUsers();
+        }
+
+        function renderUsers() {
+            const container = document.getElementById('userList');
+            
+            if (filteredUsers.length === 0) {
+                container.innerHTML = '<div class="empty-state">No users found</div>';
+                return;
+            }
+            
+            let html = '';
+            filteredUsers.forEach(user => {
+                const balance = getDisplayBalance(user);
+                const shortId = user.id.substring(0, 16) + '...';
+                const packageStatus = user.package?.status || 'none';
+                const packageName = user.package?.name || 'No Package';
+                const packageHours = user.package?.hours || 0;
+                const depositLimit = user.depositLimit || 0;
+                
+                let statusOptions = `
+                    <option value="none" ${packageStatus === 'none' ? 'selected' : ''}>No Package</option>
+                    <option value="pending" ${packageStatus === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                    <option value="approved" ${packageStatus === 'approved' ? 'selected' : ''}>✅ Approved</option>
+                    <option value="active" ${packageStatus === 'active' ? 'selected' : ''}>🟢 Active</option>
+                    <option value="expired" ${packageStatus === 'expired' ? 'selected' : ''}>❌ Expired</option>
+                `;
+                
+                html += `
+                    <div class="user-card">
+                        <div class="user-header">
+                            <div class="user-info">
+                                <div class="user-name">${escapeHtml(user.username || 'User')}</div>
+                                <div class="user-id">🆔 ${shortId}</div>
+                            </div>
+                            <div class="user-balance-box">
+                                <div class="user-balance">${balance}</div>
+                                <div class="user-balance-inr">≈ $${((user.balance || 0) / usdtRate).toFixed(2)} USDT</div>
+                            </div>
+                        </div>
+                        
+                        <div class="package-box">
+                            <div class="package-row">
+                                <span class="package-label">📦 Package Status</span>
+                                <select class="package-status" onchange="updatePackageStatus('${user.id}', this.value)">
+                                    ${statusOptions}
+                                </select>
+                            </div>
+                            <div class="package-info">
+                                📦 ${packageName} ${packageHours > 0 ? `| ⏱️ ${packageHours} Hours` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="limit-box">
+                            <div class="limit-row">
+                                <span class="limit-label">💰 Deposit Limit</span>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span class="limit-value">₹${depositLimit.toLocaleString()}</span>
+                                    <input type="number" class="limit-input" id="limit_${user.id}" placeholder="Set limit" value="${depositLimit}">
+                                    <button class="btn btn-blue" onclick="updateDepositLimit('${user.id}', document.getElementById('limit_${user.id}').value)">
+                                        Set
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="d-label">👤 Connected Username</div>
+                                <div class="d-value">${user.connections?.username || '--'}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="d-label">🌐 Betting Link</div>
+                                <div class="d-value">${user.connections?.bettingLink || '--'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="balance-actions">
+                            <input type="number" id="bal_${user.id}" placeholder="Amount (₹)">
+                            <button class="btn btn-green" onclick="addBalance('${user.id}')">
+                                <i class="fas fa-plus"></i> ADD
+                            </button>
+                            <button class="btn btn-red" onclick="removeBalance('${user.id}')">
+                                <i class="fas fa-minus"></i> REMOVE
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Initial load
+        loadUsdtRate();
+        loadUsers();
+    </script>
+</body>
+</html>

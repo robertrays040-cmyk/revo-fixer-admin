@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Payment Numbers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --blue: #448AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.orange { color: var(--orange); }
+
+        /* Method Tabs */
+        .method-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--card);
+            padding: 6px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+        }
+        .method-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: var(--text3);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: all 0.3s;
+        }
+        .method-tab.active {
+            background: var(--blue);
+            color: white;
+        }
+
+        /* Numbers Card */
+        .numbers-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .card-title i {
+            color: var(--blue);
+            margin-right: 8px;
+        }
+        .add-btn {
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 30px;
+            padding: 8px 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .add-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Numbers List */
+        .numbers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .number-item {
+            background: var(--input);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        .number-item:hover {
+            background: rgba(68,138,255,0.05);
+        }
+        .number-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        .number-label-input {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-size: 12px;
+            width: 100px;
+            margin-right: 10px;
+        }
+        .number-value-input {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: monospace;
+            width: 220px;
+        }
+        .number-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .status-active {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        .status-inactive {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .action-icons {
+            display: flex;
+            gap: 8px;
+        }
+        .action-icon {
+            background: rgba(68,138,255,0.15);
+            border: none;
+            color: var(--blue);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-icon:hover {
+            transform: scale(1.05);
+        }
+        .action-icon.danger {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+        }
+        .action-icon.success {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+        }
+
+        /* Add Form */
+        .add-form {
+            background: var(--input);
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .add-form input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+        }
+        .add-form input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        .add-form button {
+            background: var(--blue);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text4);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.error {
+            background: var(--red);
+        }
+
+        @media (max-width: 700px) {
+            .number-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .number-info {
+                width: 100%;
+            }
+            .number-value-input {
+                width: 100%;
+                margin-top: 8px;
+            }
+            .add-form {
+                flex-direction: column;
+            }
+            .add-form input {
+                width: 100%;
+            }
+            .add-form button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1>📞 <span>PAYMENT</span> NUMBERS</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value blue" id="totalNumbers">0</div>
+                <div class="stat-label">Total Numbers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green" id="activeNumbers">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange" id="inactiveNumbers">0</div>
+                <div class="stat-label">Inactive</div>
+            </div>
+        </div>
+
+        <!-- Method Tabs -->
+        <div class="method-tabs">
+            <button class="method-tab active" data-method="upi" onclick="switchMethod('upi')">
+                <i class="fas fa-mobile-alt"></i> UPI
+            </button>
+            <button class="method-tab" data-method="bkash" onclick="switchMethod('bkash')">
+                <i class="fab fa-cc-mastercard"></i> Bkash
+            </button>
+            <button class="method-tab" data-method="usdt" onclick="switchMethod('usdt')">
+                <i class="fas fa-coins"></i> USDT TRC20
+            </button>
+        </div>
+
+        <!-- UPI Section -->
+        <div id="upiSection" class="numbers-card">
+            <div class="card-header">
+                <div class="card-title"><i class="fas fa-mobile-alt"></i> UPI IDs</div>
+                <button class="add-btn" onclick="showAddForm('upi')">
+                    <i class="fas fa-plus"></i> Add UPI ID
+                </button>
+            </div>
+            <div id="upiList" class="numbers-list">
+                <div class="empty-state">No UPI IDs added</div>
+            </div>
+            <div id="upiAddForm" class="add-form" style="display: none;">
+                <input type="text" id="upiLabel" placeholder="Label (e.g., Google Pay)">
+                <input type="text" id="upiNumber" placeholder="UPI ID (e.g., name@okhdfcbank)">
+                <button onclick="addNumber('upi')">Add UPI ID</button>
+                <button onclick="hideAddForm('upi')" style="background: var(--red);">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Bkash Section -->
+        <div id="bkashSection" class="numbers-card" style="display: none;">
+            <div class="card-header">
+                <div class="card-title"><i class="fab fa-cc-mastercard"></i> Bkash Numbers</div>
+                <button class="add-btn" onclick="showAddForm('bkash')">
+                    <i class="fas fa-plus"></i> Add Bkash Number
+                </button>
+            </div>
+            <div id="bkashList" class="numbers-list">
+                <div class="empty-state">No Bkash numbers added</div>
+            </div>
+            <div id="bkashAddForm" class="add-form" style="display: none;">
+                <input type="text" id="bkashLabel" placeholder="Label (e.g., Bkash Personal)">
+                <input type="text" id="bkashNumber" placeholder="Bkash Number (01XXXXXXXXX)">
+                <button onclick="addNumber('bkash')">Add Bkash Number</button>
+                <button onclick="hideAddForm('bkash')" style="background: var(--red);">Cancel</button>
+            </div>
+        </div>
+
+        <!-- USDT Section -->
+        <div id="usdtSection" class="numbers-card" style="display: none;">
+            <div class="card-header">
+                <div class="card-title"><i class="fas fa-coins"></i> USDT TRC20 Addresses</div>
+                <button class="add-btn" onclick="showAddForm('usdt')">
+                    <i class="fas fa-plus"></i> Add USDT Address
+                </button>
+            </div>
+            <div id="usdtList" class="numbers-list">
+                <div class="empty-state">No USDT addresses added</div>
+            </div>
+            <div id="usdtAddForm" class="add-form" style="display: none;">
+                <input type="text" id="usdtLabel" placeholder="Label (e.g., TRC20 Address)">
+                <input type="text" id="usdtAddress" placeholder="USDT TRC20 Wallet Address">
+                <button onclick="addNumber('usdt')">Add Address</button>
+                <button onclick="hideAddForm('usdt')" style="background: var(--red);">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let currentMethod = 'upi';
+        let numbersData = { upi: {}, bkash: {}, usdt: {} };
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function switchMethod(method) {
+            currentMethod = method;
+            
+            // Update tabs
+            document.querySelectorAll('.method-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.method === method) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Show/hide sections
+            document.getElementById('upiSection').style.display = method === 'upi' ? 'block' : 'none';
+            document.getElementById('bkashSection').style.display = method === 'bkash' ? 'block' : 'none';
+            document.getElementById('usdtSection').style.display = method === 'usdt' ? 'block' : 'none';
+            
+            loadNumbers(method);
+        }
+
+        function showAddForm(method) {
+            document.getElementById(`${method}AddForm`).style.display = 'flex';
+        }
+
+        function hideAddForm(method) {
+            document.getElementById(`${method}AddForm`).style.display = 'none';
+            document.getElementById(`${method}Label`).value = '';
+            document.getElementById(`${method}Number`).value = '';
+            if (method === 'usdt') {
+                document.getElementById('usdtAddress').value = '';
+            }
+        }
+
+        async function loadNumbers(method) {
+            const snapshot = await db.ref(`paymentMethods/${method}/numbers`).once('value');
+            numbersData[method] = snapshot.val() || {};
+            renderNumbers(method);
+            updateStats();
+        }
+
+        function renderNumbers(method) {
+            const container = document.getElementById(`${method}List`);
+            const numbers = numbersData[method];
+            
+            if (Object.keys(numbers).length === 0) {
+                container.innerHTML = '<div class="empty-state">No numbers added. Click + to add.</div>';
+                return;
+            }
+            
+            let html = '';
+            Object.entries(numbers).forEach(([id, data]) => {
+                const isActive = data.isActive !== false;
+                
+                html += `
+                    <div class="number-item" data-id="${id}">
+                        <div class="number-info">
+                            <input type="text" class="number-label-input" id="label_${method}_${id}" value="${data.label || ''}" placeholder="Label">
+                            <input type="text" class="number-value-input" id="value_${method}_${id}" value="${data.number || ''}" placeholder="${method === 'upi' ? 'UPI ID' : (method === 'bkash' ? 'Bkash Number' : 'USDT Address')}">
+                        </div>
+                        <div class="number-status">
+                            <span class="status-badge ${isActive ? 'status-active' : 'status-inactive'}">
+                                ${isActive ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
+                            <div class="action-icons">
+                                <button class="action-icon success" onclick="toggleStatus('${method}', '${id}', ${!isActive})" title="${isActive ? 'Deactivate' : 'Activate'}">
+                                    <i class="fas ${isActive ? 'fa-ban' : 'fa-check'}"></i>
+                                </button>
+                                <button class="action-icon" onclick="copyNumber('${data.number}')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="action-icon danger" onclick="deleteNumber('${method}', '${id}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function addNumber(method) {
+            let label, number;
+            
+            if (method === 'upi') {
+                label = document.getElementById('upiLabel').value.trim();
+                number = document.getElementById('upiNumber').value.trim();
+            } else if (method === 'bkash') {
+                label = document.getElementById('bkashLabel').value.trim();
+                number = document.getElementById('bkashNumber').value.trim();
+            } else {
+                label = document.getElementById('usdtLabel').value.trim();
+                number = document.getElementById('usdtAddress').value.trim();
+            }
+            
+            if (!number) {
+                showToast('Please enter a number/address', true);
+                return;
+            }
+            
+            const newId = Date.now().toString();
+            const newNumber = {
+                label: label || (method === 'upi' ? 'UPI ID' : method === 'bkash' ? 'Bkash Number' : 'USDT Address'),
+                number: number,
+                isActive: true,
+                createdAt: Date.now()
+            };
+            
+            try {
+                await db.ref(`paymentMethods/${method}/numbers/${newId}`).set(newNumber);
+                showToast(`✅ ${method.toUpperCase()} number added successfully!`);
+                hideAddForm(method);
+                loadNumbers(method);
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function saveNumber(method, id) {
+            const label = document.getElementById(`label_${method}_${id}`).value;
+            const number = document.getElementById(`value_${method}_${id}`).value;
+            
+            if (!number) {
+                showToast('Number cannot be empty', true);
+                return;
+            }
+            
+            try {
+                await db.ref(`paymentMethods/${method}/numbers/${id}`).update({
+                    label: label,
+                    number: number,
+                    updatedAt: Date.now()
+                });
+                showToast('✅ Updated successfully!');
+                loadNumbers(method);
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function toggleStatus(method, id, newStatus) {
+            try {
+                await db.ref(`paymentMethods/${method}/numbers/${id}`).update({
+                    isActive: newStatus
+                });
+                showToast(`✅ Number ${newStatus ? 'activated' : 'deactivated'}!`);
+                loadNumbers(method);
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function deleteNumber(method, id) {
+            if (!confirm('Delete this number permanently?')) return;
+            
+            try {
+                await db.ref(`paymentMethods/${method}/numbers/${id}`).remove();
+                showToast('✅ Number deleted!');
+                loadNumbers(method);
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        function copyNumber(text) {
+            if (!text) return;
+            navigator.clipboard.writeText(text);
+            showToast('✅ Copied to clipboard!');
+        }
+
+        async function updateStats() {
+            let total = 0;
+            let active = 0;
+            
+            for (const method of ['upi', 'bkash', 'usdt']) {
+                const numbers = numbersData[method];
+                if (numbers) {
+                    Object.values(numbers).forEach(num => {
+                        total++;
+                        if (num.isActive !== false) active++;
+                    });
+                }
+            }
+            
+            document.getElementById('totalNumbers').textContent = total;
+            document.getElementById('activeNumbers').textContent = active;
+            document.getElementById('inactiveNumbers').textContent = total - active;
+        }
+
+        // Initial load
+        loadNumbers('upi');
+    </script>
+</body>
+</html>

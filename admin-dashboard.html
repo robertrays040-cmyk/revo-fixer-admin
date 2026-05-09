@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --purple: #a855f7;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 30px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--blue);
+            background: rgba(68,138,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-logo i {
+            font-size: 18px;
+            color: var(--blue);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .uses-badge {
+            font-size: 10px;
+            color: var(--text3);
+            background: rgba(68,138,255,0.08);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(68,138,255,0.15);
+        }
+        .uses-badge span {
+            color: var(--green);
+            font-weight: 700;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: rgba(255,71,87,0.1);
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Welcome Card */
+        .welcome-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .welcome-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .welcome-text {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .welcome-text span {
+            color: var(--blue);
+        }
+        .welcome-sub {
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 5px;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--blue);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.orange { color: var(--orange); }
+
+        /* Navigation Grid */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .nav-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--text);
+            display: block;
+        }
+        .nav-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-3px);
+            background: rgba(68,138,255,0.03);
+        }
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 12px;
+        }
+        .nav-icon.keys { background: rgba(68,138,255,0.12); color: var(--blue); }
+        .nav-icon.codes { background: rgba(255,215,0,0.12); color: var(--gold); }
+        .nav-icon.payments { background: rgba(46,213,115,0.12); color: var(--green); }
+        .nav-icon.users { background: rgba(68,138,255,0.12); color: var(--blue); }
+        .nav-icon.balance { background: rgba(46,213,115,0.12); color: var(--green); }
+        .nav-icon.package { background: rgba(255,165,2,0.12); color: var(--orange); }
+        .nav-icon.settings { background: rgba(168,85,247,0.12); color: var(--purple); }
+        .nav-icon.logout { background: rgba(255,71,87,0.12); color: var(--red); }
+
+        .nav-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .nav-desc {
+            font-size: 9px;
+            color: var(--text3);
+        }
+
+        /* Full Width */
+        .nav-card.full {
+            grid-column: 1 / -1;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 10px;
+            color: var(--text4);
+            padding: 15px;
+        }
+
+        @media (max-width: 450px) {
+            .nav-icon { width: 45px; height: 45px; font-size: 20px; }
+            .nav-title { font-size: 12px; }
+            .stat-value { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h1><span>REVO</span> ADMIN</h1>
+        </div>
+        <div class="header-right">
+            <div class="uses-badge">🔑 Uses: <span id="usesLeftBadge">--</span><span style="font-size:9px;">/10</span></div>
+            <button class="logout-btn" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> LOGOUT</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+
+        <!-- Welcome -->
+        <div class="welcome-card">
+            <div class="welcome-icon">👑</div>
+            <div class="welcome-text">Welcome, <span>Administrator</span>!</div>
+            <div class="welcome-sub">Revo Fixer Management Panel</div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value blue" id="statKeys">0</div>
+                <div class="stat-label">License Keys</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue" id="statUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange" id="statPending">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-grid">
+            
+            <a href="admin-key-generator.html" class="nav-card">
+                <div class="nav-icon keys"><i class="fas fa-key"></i></div>
+                <div class="nav-title">License Keys</div>
+                <div class="nav-desc">Generate & Manage</div>
+            </a>
+
+            <a href="activation-generator.html" class="nav-card">
+                <div class="nav-icon codes"><i class="fas fa-ticket-alt"></i></div>
+                <div class="nav-title">Activation Codes</div>
+                <div class="nav-desc">Signal Access Codes</div>
+            </a>
+
+            <a href="admin-payments.html" class="nav-card">
+                <div class="nav-icon payments"><i class="fas fa-coins"></i></div>
+                <div class="nav-title">Deposits</div>
+                <div class="nav-desc">Approve & Reject</div>
+            </a>
+
+            <a href="admin-users.html" class="nav-card">
+                <div class="nav-icon users"><i class="fas fa-users"></i></div>
+                <div class="nav-title">Users</div>
+                <div class="nav-desc">Manage & View</div>
+            </a>
+
+            <a href="admin-balance.html" class="nav-card">
+                <div class="nav-icon balance"><i class="fas fa-wallet"></i></div>
+                <div class="nav-title">User Balance</div>
+                <div class="nav-desc">Add/Remove Balance</div>
+            </a>
+
+            <a href="admin-package.html" class="nav-card">
+                <div class="nav-icon package"><i class="fas fa-box"></i></div>
+                <div class="nav-title">Package Settings</div>
+                <div class="nav-desc">Prices & Discounts</div>
+            </a>
+
+            <a href="admin-payment-numbers.html" class="nav-card">
+                <div class="nav-icon settings"><i class="fas fa-phone-alt"></i></div>
+                <div class="nav-title">Payment Numbers</div>
+                <div class="nav-desc">UPI, Bkash, USDT</div>
+            </a>
+
+            <a href="admin-settings.html" class="nav-card">
+                <div class="nav-icon settings"><i class="fas fa-cog"></i></div>
+                <div class="nav-title">Settings</div>
+                <div class="nav-desc">App & Maintenance</div>
+            </a>
+
+        </div>
+
+        <div class="footer-text">
+            <i class="fas fa-shield-alt"></i> Revo Fixer Admin Panel © 2026
+        </div>
+
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Check admin login
+        const adminLoggedIn = localStorage.getItem('adminLoggedIn');
+        if (adminLoggedIn !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        // Get admin key uses
+        const adminKey = localStorage.getItem('adminKey');
+        if (adminKey) {
+            const encodedKey = adminKey.replace(/-/g, '_');
+            db.ref(`adminKeys/${encodedKey}`).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const loginCount = data.loginCount || 0;
+                    const maxLogins = data.maxLogins || 10;
+                    const remaining = maxLogins - loginCount;
+                    document.getElementById('usesLeftBadge').textContent = remaining;
+                    localStorage.setItem('remainingUses', remaining);
+                }
+            });
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('adminKey');
+            localStorage.removeItem('remainingUses');
+            window.location.href = 'admin-login.html';
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                // License keys count
+                const licenseSnapshot = await db.ref('securityCodes').once('value');
+                const licenseCount = licenseSnapshot.exists() ? Object.keys(licenseSnapshot.val()).length : 0;
+                document.getElementById('statKeys').textContent = licenseCount;
+
+                // Users count
+                const usersSnapshot = await db.ref('users').once('value');
+                const usersCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
+                document.getElementById('statUsers').textContent = usersCount;
+
+                // Pending payments count
+                const paymentsSnapshot = await db.ref('paymentRequests').once('value');
+                let pendingCount = 0;
+                if (paymentsSnapshot.exists()) {
+                    const payments = paymentsSnapshot.val();
+                    Object.values(payments).forEach(payment => {
+                        if (payment.status === 'pending') pendingCount++;
+                    });
+                }
+                document.getElementById('statPending').textContent = pendingCount;
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        loadStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Login | Revo Fixer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 40%, #1a1a3e, #0a0b14);
+            z-index: -2;
+        }
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(68,138,255,0.05) 0%, transparent 60%);
+            animation: slowDrift 20s ease infinite;
+        }
+        @keyframes slowDrift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, -2%); }
+        }
+
+        /* Floating Particles */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(68,138,255,0.1);
+            animation: floatParticle 15s infinite;
+            z-index: -1;
+        }
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { transform: translateY(-50px) translateX(30px); opacity: 0.3; }
+        }
+
+        .login-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 45px 35px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            animation: fadeInUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(68,138,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(68,138,255,0.4);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 0 15px rgba(68,138,255,0);
+                transform: scale(1.05);
+            }
+        }
+        .login-icon i {
+            font-size: 36px;
+            color: var(--blue);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #fff, var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: var(--text3);
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            text-align: center;
+            letter-spacing: 2px;
+            font-family: monospace;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 15px rgba(68,138,255,0.2);
+            transform: scale(1.02);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(68,138,255,0.4);
+        }
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Ripple Effect */
+        .login-btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Loading Animation */
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .login-btn.loading .btn-text {
+            display: none;
+        }
+        .login-btn.loading .spinner {
+            display: inline-block;
+        }
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-msg {
+            color: var(--red);
+            font-size: 12px;
+            margin-top: 15px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .info-text {
+            font-size: 11px;
+            color: var(--text4);
+            margin-top: 20px;
+        }
+        .info-text i {
+            color: var(--blue);
+        }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 35px 25px; }
+            h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animation"></div>
+    <div class="particle" style="width: 200px; height: 200px; top: 10%; left: -50px;"></div>
+    <div class="particle" style="width: 150px; height: 150px; bottom: 20%; right: -50px;"></div>
+
+    <div class="login-card">
+        <div class="login-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <h1>ADMIN LOGIN</h1>
+        <div class="subtitle">Enter your admin access key</div>
+
+        <input type="password" class="input-field" id="adminKey" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="25" autocomplete="off">
+        
+        <button class="login-btn" id="loginBtn" onclick="loginAdmin()">
+            <span class="btn-text"><i class="fas fa-key"></i> ACCESS PANEL</span>
+            <span class="spinner"></span>
+        </button>
+
+        <div id="loginError" class="error-msg">Invalid or expired admin key!</div>
+        
+        <div class="info-text">
+            <i class="fas fa-info-circle"></i> Contact master admin for access key
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function encodeKey(key) {
+            return key.replace(/-/g, '_');
+        }
+
+        function addRippleEffect(button, event) {
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            button.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        async function loginAdmin() {
+            const key = document.getElementById('adminKey').value.trim().toUpperCase();
+            const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            errorDiv.style.display = 'none';
+            
+            if (!key) {
+                errorDiv.textContent = 'Please enter admin key!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            const keyPattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+            if (!keyPattern.test(key)) {
+                errorDiv.textContent = 'Invalid key format! Use XXXX-XXXX-XXXX-XXXX';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // Show loading state
+            loginBtn.classList.add('loading');
+            
+            const encodedKey = encodeKey(key);
+            
+            try {
+                const snapshot = await db.ref(`adminKeys/${encodedKey}`).once('value');
+                
+                if (!snapshot.exists()) {
+                    errorDiv.textContent = 'Invalid admin key!';
+                    errorDiv.style.display = 'block';
+                    loginBtn.classList.remove('loading');
+                    return;
+                }
+                
+                const keyData = snapshot.val();
+                
+                if (keyData.status === 'blocked') {
+                    errorDiv.textContent = 'Key is blocked!';
+                    errorDiv.style.display = 'block';
+                    loginBtn.classList.remove('loading');
+                    return;
+                }
+                
+                const loginCount = (keyData.loginCount || 0) + 1;
+                const maxLogins = keyData.maxLogins || 10;
+                
+                if (loginCount > maxLogins) {
+                    await db.ref(`adminKeys/${encodedKey}`).update({ 
+                        status: 'expired',
+                        expiredAt: Date.now()
+                    });
+                    errorDiv.textContent = 'Key expired! Max logins reached.';
+                    errorDiv.style.display = 'block';
+                    loginBtn.classList.remove('loading');
+                    return;
+                }
+                
+                await db.ref(`adminKeys/${encodedKey}`).update({
+                    loginCount: loginCount,
+                    lastLogin: Date.now()
+                });
+                
+                localStorage.setItem('adminKey', key);
+                localStorage.setItem('adminLoggedIn', 'true');
+                
+                // Success animation
+                loginBtn.style.background = 'linear-gradient(135deg, var(--green), #1a9e40)';
+                setTimeout(() => {
+                    window.location.href = 'admin-dashboard.html';
+                }, 500);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'Error: ' + error.message;
+                errorDiv.style.display = 'block';
+                loginBtn.classList.remove('loading');
+            }
+        }
+
+        document.getElementById('adminKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') loginAdmin();
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', function(e) {
+            addRippleEffect(this, e);
+        });
+    </script>
+</body>
+</html>

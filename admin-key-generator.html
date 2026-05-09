@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Admin Key Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .icon-lg {
+            width: 70px;
+            height: 70px;
+            background: rgba(68,138,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+        }
+        .icon-lg i {
+            font-size: 32px;
+            color: var(--blue);
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .title span {
+            color: var(--blue);
+        }
+        .subtitle {
+            font-size: 12px;
+            color: var(--text3);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Input Group */
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-label {
+            font-size: 11px;
+            color: var(--text3);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        select.input-field {
+            cursor: pointer;
+        }
+
+        /* Key Display */
+        .key-display {
+            background: var(--input);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+        .key-label {
+            font-size: 11px;
+            color: var(--text3);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .key-value {
+            font-size: 20px;
+            font-weight: 800;
+            font-family: monospace;
+            color: var(--green);
+            letter-spacing: 2px;
+            word-break: break-all;
+            background: rgba(46,213,115,0.1);
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .copy-btn {
+            background: rgba(68,138,255,0.15);
+            border: 1px solid var(--blue);
+            color: var(--blue);
+            padding: 10px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .copy-btn:hover {
+            background: var(--blue);
+            color: white;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Batch Actions */
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .batch-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 100px;
+        }
+        .batch-btn.reset {
+            background: rgba(68,138,255,0.15);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+        }
+        .batch-btn.ban {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .batch-btn.unban {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        .batch-btn.delete {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        .batch-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            flex: 1;
+            background: var(--input);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .stat-number {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--blue);
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+        }
+
+        /* Select All */
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--input);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .select-all input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--blue);
+        }
+        .key-checkbox {
+            margin-right: 12px;
+        }
+        .key-checkbox input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--blue);
+        }
+
+        /* Keys List */
+        .keys-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .key-item {
+            background: var(--input);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .key-item:hover {
+            transform: translateX(5px);
+        }
+        .key-info {
+            flex: 1;
+        }
+        .key-code {
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--green);
+            font-weight: 600;
+        }
+        .key-details {
+            font-size: 10px;
+            color: var(--text4);
+            margin-top: 3px;
+        }
+        .status-badge {
+            font-size: 9px;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .status-active {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+        }
+        .status-used {
+            background: rgba(255,165,2,0.15);
+            color: var(--orange);
+        }
+        .status-banned {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+        }
+        .key-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .action-icon {
+            background: rgba(68,138,255,0.15);
+            border: none;
+            color: var(--blue);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .action-icon.danger {
+            background: rgba(255,71,87,0.15);
+            color: var(--red);
+        }
+        .action-icon.warning {
+            background: rgba(255,165,2,0.15);
+            color: var(--orange);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.error {
+            background: var(--red);
+        }
+
+        @media (max-width: 700px) {
+            .batch-actions { flex-direction: column; }
+            .stats-row { flex-wrap: wrap; }
+            .stat-box { min-width: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1>🔑 <span>LICENSE</span> KEY MANAGER</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="container">
+        <!-- Generate Section -->
+        <div class="card">
+            <div class="icon-lg">
+                <i class="fas fa-key"></i>
+            </div>
+            <div class="title"><span>LICENSE</span> KEY GENERATOR</div>
+            <div class="subtitle">Generate license keys for users</div>
+
+            <div class="input-group">
+                <label class="input-label">📦 PACKAGE</label>
+                <select class="input-field" id="packageSelect">
+                    <option value="1 Hour Package" selected>1 Hour Package - ₹2,000 (1 hour)</option>
+                    <option value="2 Hour Package">2 Hour Package - ₹3,750 (2 hours)</option>
+                    <option value="4 Hour Package">4 Hour Package - ₹7,550 (4 hours)</option>
+                    <option value="8 Hour Package">8 Hour Package - ₹15,000 (8 hours)</option>
+                    <option value="1 Day Package">1 Day Package - ₹40,000 (24 hours)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">💰 PRICE (₹)</label>
+                <input type="number" class="input-field" id="priceInput" value="2000" step="100">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">⏱️ VALIDITY (HOURS)</label>
+                <input type="number" class="input-field" id="hoursInput" value="1" step="1">
+            </div>
+
+            <button class="generate-btn" onclick="generateKey()">
+                <i class="fas fa-plus-circle"></i> GENERATE LICENSE KEY
+            </button>
+
+            <div id="keyDisplay" class="key-display">
+                <div class="key-label">🔑 NEW LICENSE KEY GENERATED</div>
+                <div class="key-value" id="generatedKey"></div>
+                <button class="copy-btn" id="copyGenKeyBtn" onclick="copyGeneratedKey()">
+                    <i class="fas fa-copy"></i> COPY KEY
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box" onclick="filterKeys('all')">
+                <div class="stat-number" id="totalKeys">0</div>
+                <div class="stat-label">Total Keys</div>
+            </div>
+            <div class="stat-box" onclick="filterKeys('active')">
+                <div class="stat-number" id="activeKeys">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-box" onclick="filterKeys('used')">
+                <div class="stat-number" id="usedKeys">0</div>
+                <div class="stat-label">Used</div>
+            </div>
+            <div class="stat-box" onclick="filterKeys('banned')">
+                <div class="stat-number" id="bannedKeys">0</div>
+                <div class="stat-label">Banned</div>
+            </div>
+        </div>
+
+        <!-- Batch Actions -->
+        <div class="card">
+            <div class="title" style="font-size: 16px; margin-bottom: 15px;">⚡ BATCH ACTIONS</div>
+            <div class="batch-actions">
+                <button class="batch-btn reset" onclick="batchResetKeys()">
+                    <i class="fas fa-sync-alt"></i> Reset All Active
+                </button>
+                <button class="batch-btn ban" onclick="batchBanKeys()">
+                    <i class="fas fa-ban"></i> Ban All Active
+                </button>
+                <button class="batch-btn unban" onclick="batchUnbanKeys()">
+                    <i class="fas fa-check-circle"></i> Unban All
+                </button>
+                <button class="batch-btn delete" onclick="batchDeleteAllKeys()">
+                    <i class="fas fa-trash"></i> Delete All Keys
+                </button>
+            </div>
+        </div>
+
+        <!-- Keys List -->
+        <div class="card">
+            <div class="select-all">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                <label for="selectAllCheckbox" style="color: var(--text2);">Select All Keys</label>
+                <div style="flex:1;"></div>
+                <button class="action-icon" onclick="deleteSelectedKeys()" title="Delete Selected" style="background: rgba(255,71,87,0.15); color: var(--red);">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="action-icon" onclick="resetSelectedKeys()" title="Reset Selected" style="background: rgba(68,138,255,0.15); color: var(--blue);">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="action-icon" onclick="banSelectedKeys()" title="Ban Selected" style="background: rgba(255,165,2,0.15); color: var(--orange);">
+                    <i class="fas fa-ban"></i>
+                </button>
+                <button class="action-icon" onclick="unbanSelectedKeys()" title="Unban Selected" style="background: rgba(46,213,115,0.15); color: var(--green);">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+            <div class="keys-list" id="keysList">
+                <div style="text-align: center; padding: 20px; color: var(--text4);">Loading keys...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7UVJOB_jWbPuRAqkVXJfq4MgOYUS8hds",
+            authDomain: "revo-fixer-18514.firebaseapp.com",
+            databaseURL: "https://revo-fixer-18514-default-rtdb.firebaseio.com",
+            projectId: "revo-fixer-18514",
+            storageBucket: "revo-fixer-18514.firebasestorage.app",
+            messagingSenderId: "556764878482",
+            appId: "1:556764878482:web:ba5c72a25db0127572384b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        let allKeys = [];
+        let currentFilter = 'all';
+        let lastGeneratedKey = '';
+
+        function goBack() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function generateRandomKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let key = '';
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    key += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                if (i < 3) key += '-';
+            }
+            return key.toUpperCase();
+        }
+
+        async function generateKey() {
+            const packageName = document.getElementById('packageSelect').value;
+            const price = parseInt(document.getElementById('priceInput').value);
+            const hours = parseInt(document.getElementById('hoursInput').value);
+            const licenseKey = generateRandomKey();
+            
+            const keyData = {
+                name: packageName,
+                originalPrice: price,
+                discountPercent: 0,
+                finalPrice: price,
+                hours: hours,
+                validity: hours,
+                status: 'active',
+                usedCount: 0,
+                deviceLogins: {},
+                package: {
+                    name: packageName,
+                    price: price,
+                    hours: hours
+                },
+                createdAt: Date.now()
+            };
+            
+            try {
+                await db.ref(`securityCodes/${licenseKey}`).set(keyData);
+                lastGeneratedKey = licenseKey;
+                document.getElementById('generatedKey').textContent = licenseKey;
+                document.getElementById('keyDisplay').style.display = 'block';
+                showToast('✅ License key generated successfully!');
+                loadKeys();
+                
+                setTimeout(() => {
+                    document.getElementById('keyDisplay').style.display = 'none';
+                }, 10000);
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        // FIXED COPY FUNCTION - Works on all browsers
+        async function copyGeneratedKey() {
+            const keyText = document.getElementById('generatedKey').textContent;
+            
+            if (!keyText || keyText === '') {
+                showToast('No key to copy!', true);
+                return;
+            }
+            
+            try {
+                // Try modern clipboard API
+                await navigator.clipboard.writeText(keyText);
+                showToast('✅ Key copied to clipboard!');
+                
+                // Button feedback
+                const copyBtn = document.getElementById('copyGenKeyBtn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+                
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = keyText;
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                
+                try {
+                    document.execCommand('copy');
+                    showToast('✅ Key copied to clipboard!');
+                    
+                    const copyBtn = document.getElementById('copyGenKeyBtn');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                    }, 2000);
+                } catch (e) {
+                    showToast('❌ Failed to copy. Please copy manually.', true);
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function getKeyStatus(data) {
+            if (data.status === 'banned') return 'banned';
+            const loginCount = Object.keys(data.deviceLogins || {}).length;
+            if (data.status === 'used' || loginCount >= 3) return 'used';
+            return 'active';
+        }
+
+        async function loadKeys() {
+            const snapshot = await db.ref('securityCodes').once('value');
+            const keys = snapshot.val();
+            
+            allKeys = [];
+            let total = 0, active = 0, used = 0, banned = 0;
+            
+            if (keys) {
+                Object.entries(keys).forEach(([key, data]) => {
+                    const status = getKeyStatus(data);
+                    allKeys.push({ key, data, status });
+                    total++;
+                    if (status === 'active') active++;
+                    else if (status === 'used') used++;
+                    else if (status === 'banned') banned++;
+                });
+            }
+            
+            document.getElementById('totalKeys').textContent = total;
+            document.getElementById('activeKeys').textContent = active;
+            document.getElementById('usedKeys').textContent = used;
+            document.getElementById('bannedKeys').textContent = banned;
+            
+            renderKeys();
+        }
+
+        function renderKeys() {
+            const filtered = allKeys.filter(k => {
+                if (currentFilter === 'all') return true;
+                return k.status === currentFilter;
+            });
+            
+            const container = document.getElementById('keysList');
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text4);">No keys found</div>';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(({ key, data, status }) => {
+                const loginCount = Object.keys(data.deviceLogins || {}).length;
+                const createdDate = data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'Unknown';
+                const statusText = status === 'active' ? 'ACTIVE' : (status === 'used' ? 'USED' : 'BANNED');
+                const statusClass = status === 'active' ? 'status-active' : (status === 'used' ? 'status-used' : 'status-banned');
+                
+                html += `
+                    <div class="key-item" data-key="${key}">
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" class="key-checkbox" data-key="${key}" style="margin-right: 12px;">
+                            <div class="key-info">
+                                <div class="key-code">${key}</div>
+                                <div class="key-details">${data.name || 'Package'} | Used: ${loginCount}/3 | Created: ${createdDate}</div>
+                            </div>
+                        </div>
+                        <div class="key-actions">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <button class="action-icon" onclick="resetKey('${key}')" title="Reset">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="action-icon warning" onclick="banKey('${key}')" title="Ban">
+                                <i class="fas fa-ban"></i>
+                            </button>
+                            <button class="action-icon danger" onclick="deleteKey('${key}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            
+            document.querySelectorAll('.key-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateSelectAll);
+            });
+        }
+
+        function updateSelectAll() {
+            const allCheckboxes = document.querySelectorAll('.key-checkbox');
+            const checkedBoxes = document.querySelectorAll('.key-checkbox:checked');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            selectAll.checked = allCheckboxes.length === checkedBoxes.length && allCheckboxes.length > 0;
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox');
+            document.querySelectorAll('.key-checkbox').forEach(cb => {
+                cb.checked = selectAll.checked;
+            });
+        }
+
+        function getSelectedKeys() {
+            const selected = [];
+            document.querySelectorAll('.key-checkbox:checked').forEach(cb => {
+                selected.push(cb.dataset.key);
+            });
+            return selected;
+        }
+
+        function filterKeys(filter) {
+            currentFilter = filter;
+            renderKeys();
+        }
+
+        async function resetKey(key) {
+            try {
+                await db.ref(`securityCodes/${key}`).update({
+                    status: 'active',
+                    usedCount: 0,
+                    deviceLogins: {},
+                    resetAt: Date.now()
+                });
+                showToast(`✅ Key "${key.substring(0, 8)}..." reset!`);
+                loadKeys();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function banKey(key) {
+            try {
+                await db.ref(`securityCodes/${key}`).update({
+                    status: 'banned',
+                    bannedAt: Date.now()
+                });
+                showToast(`✅ Key "${key.substring(0, 8)}..." banned!`);
+                loadKeys();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function unbanKey(key) {
+            try {
+                await db.ref(`securityCodes/${key}`).update({
+                    status: 'active',
+                    unbannedAt: Date.now()
+                });
+                showToast(`✅ Key "${key.substring(0, 8)}..." unbanned!`);
+                loadKeys();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function deleteKey(key) {
+            if (!confirm(`Delete key "${key}" permanently?`)) return;
+            try {
+                await db.ref(`securityCodes/${key}`).remove();
+                showToast(`✅ Key "${key.substring(0, 8)}..." deleted!`);
+                loadKeys();
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+
+        async function batchResetKeys() {
+            const activeKeys = allKeys.filter(k => k.status === 'active');
+            if (activeKeys.length === 0) {
+                showToast('No active keys to reset', true);
+                return;
+            }
+            if (!confirm(`Reset ${activeKeys.length} active key(s)?`)) return;
+            
+            for (const key of activeKeys) {
+                await db.ref(`securityCodes/${key.key}`).update({
+                    status: 'active',
+                    usedCount: 0,
+                    deviceLogins: {},
+                    resetAt: Date.now()
+                });
+            }
+            showToast(`✅ ${activeKeys.length} key(s) reset!`);
+            loadKeys();
+        }
+
+        async function batchBanKeys() {
+            const activeKeys = allKeys.filter(k => k.status === 'active');
+            if (activeKeys.length === 0) {
+                showToast('No active keys to ban', true);
+                return;
+            }
+            if (!confirm(`Ban ${activeKeys.length} active key(s)?`)) return;
+            
+            for (const key of activeKeys) {
+                await db.ref(`securityCodes/${key.key}`).update({
+                    status: 'banned',
+                    bannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${activeKeys.length} key(s) banned!`);
+            loadKeys();
+        }
+
+        async function batchUnbanKeys() {
+            const bannedKeys = allKeys.filter(k => k.status === 'banned');
+            if (bannedKeys.length === 0) {
+                showToast('No banned keys to unban', true);
+                return;
+            }
+            if (!confirm(`Unban ${bannedKeys.length} banned key(s)?`)) return;
+            
+            for (const key of bannedKeys) {
+                await db.ref(`securityCodes/${key.key}`).update({
+                    status: 'active',
+                    unbannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${bannedKeys.length} key(s) unbanned!`);
+            loadKeys();
+        }
+
+        async function batchDeleteAllKeys() {
+            if (allKeys.length === 0) {
+                showToast('No keys to delete', true);
+                return;
+            }
+            if (!confirm(`⚠️ PERMANENTLY delete ALL ${allKeys.length} keys? This cannot be undone!`)) return;
+            
+            for (const key of allKeys) {
+                await db.ref(`securityCodes/${key.key}`).remove();
+            }
+            showToast(`✅ ${allKeys.length} keys deleted!`);
+            loadKeys();
+        }
+
+        async function resetSelectedKeys() {
+            const selected = getSelectedKeys();
+            if (selected.length === 0) {
+                showToast('No keys selected', true);
+                return;
+            }
+            if (!confirm(`Reset ${selected.length} selected key(s)?`)) return;
+            
+            for (const key of selected) {
+                await db.ref(`securityCodes/${key}`).update({
+                    status: 'active',
+                    usedCount: 0,
+                    deviceLogins: {},
+                    resetAt: Date.now()
+                });
+            }
+            showToast(`✅ ${selected.length} key(s) reset!`);
+            loadKeys();
+        }
+
+        async function banSelectedKeys() {
+            const selected = getSelectedKeys();
+            if (selected.length === 0) {
+                showToast('No keys selected', true);
+                return;
+            }
+            if (!confirm(`Ban ${selected.length} selected key(s)?`)) return;
+            
+            for (const key of selected) {
+                await db.ref(`securityCodes/${key}`).update({
+                    status: 'banned',
+                    bannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${selected.length} key(s) banned!`);
+            loadKeys();
+        }
+
+        async function unbanSelectedKeys() {
+            const selected = getSelectedKeys();
+            if (selected.length === 0) {
+                showToast('No keys selected', true);
+                return;
+            }
+            if (!confirm(`Unban ${selected.length} selected key(s)?`)) return;
+            
+            for (const key of selected) {
+                await db.ref(`securityCodes/${key}`).update({
+                    status: 'active',
+                    unbannedAt: Date.now()
+                });
+            }
+            showToast(`✅ ${selected.length} key(s) unbanned!`);
+            loadKeys();
+        }
+
+        async function deleteSelectedKeys() {
+            const selected = getSelectedKeys();
+            if (selected.length === 0) {
+                showToast('No keys selected', true);
+                return;
+            }
+            if (!confirm(`⚠️ Permanently delete ${selected.length} selected key(s)?`)) return;
+            
+            for (const key of selected) {
+                await db.ref(`securityCodes/${key}`).remove();
+            }
+            showToast(`✅ ${selected.length} key(s) deleted!`);
+            loadKeys();
+        }
+
+        // Update price/hours on package change
+        document.getElementById('packageSelect').addEventListener('change', function() {
+            const packages = {
+                '1 Hour Package': { price: 2000, hours: 1 },
+                '2 Hour Package': { price: 3750, hours: 2 },
+                '4 Hour Package': { price: 7550, hours: 4 },
+                '8 Hour Package': { price: 15000, hours: 8 },
+                '1 Day Package': { price: 40000, hours: 24 }
+            };
+            const selected = this.value;
+            document.getElementById('priceInput').value = packages[selected].price;
+            document.getElementById('hoursInput').value = packages[selected].hours;
+        });
+
+        loadKeys();
+    </script>
+</body>
+</html>
